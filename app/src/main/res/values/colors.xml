@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#4458A4</color>
+    <color name="colorPrimaryDark">#4458A4</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="textColor">#212121</color>
+    <color name="textHintColor">#787878</color>
+    <color name="bg_gray">#A6A6A6</color>
+    <color name="divider">#DFDFDF</color>
+    <color name="white">#FFF</color>
+    <color name="red_bg">#C4624F</color>
+    <color name="red">#FF0000</color>
+
+</resources>

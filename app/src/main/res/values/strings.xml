@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Shopping List</string>
+    <string name="shopping_list">Shopping List</string>
+    <string name="enter_an_item">Enter an Item</string>
+    <string name="carted_item">(Carted Items)</string>
+    <string name="last_updated_on_holder">Last updated on 29/08/2020, 20:16:52</string>
+</resources>
