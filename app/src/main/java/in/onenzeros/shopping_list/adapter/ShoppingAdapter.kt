@@ -29,12 +29,25 @@ class ShoppingAdapter(private val mResponseList: ArrayList<String>) :
     override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
         val name = mResponseList[position]
         holder.itemView.tv_name.text = name
-        holder.itemView.iv_add_to_cart.setOnClickListener { shoppingItemClickListener?.onAddToCart(position, name) }
-        holder.itemView.iv_delete.setOnClickListener { shoppingItemClickListener?.onDelete(position, name) }
+        holder.itemView.iv_add_to_cart.setOnClickListener {
+            removeItem(position,name)
+            shoppingItemClickListener?.onAddToCart(position, name)
+        }
+        holder.itemView.iv_delete.setOnClickListener {
+            removeItem(position,name)
+            shoppingItemClickListener?.onDelete(position, name)
+        }
     }
 
     fun addData(responses: String) {
+        mResponseList.add(responses)
         notifyItemInserted(mResponseList.size-1)
+    }
+
+    fun removeItem(pos: Int, name: String) {
+        mResponseList.remove(name)
+        notifyItemRemoved(pos)
+        notifyItemRangeChanged(pos, itemCount);
     }
 
     fun setOnItemClickListener(shoppingItemClickListener: ShoppingItemClickListener){

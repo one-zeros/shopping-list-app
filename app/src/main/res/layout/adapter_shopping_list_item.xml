@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/iv_add_to_cart"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/iv_add_to_cart"
+        app:layout_constraintBottom_toBottomOf="@id/iv_add_to_cart"
         android:textSize="18sp"
         android:fontFamily="sans-serif"
         android:text="Milk"
@@ -29,11 +30,12 @@
         app:srcCompat="@drawable/ic_baseline_add_shopping_cart_24"
         android:textColor="@color/white"
         android:layout_marginRight="4dp"
+        android:padding="4dp"
         tools:ignore="VectorDrawableCompat"
+        android:background="@drawable/bg_rect_round_gray"
         app:layout_constraintStart_toEndOf="@id/tv_name"
         app:layout_constraintEnd_toStartOf="@id/iv_delete"
-        app:layout_constraintTop_toTopOf="@id/tv_name"
-        app:layout_constraintBottom_toBottomOf="@id/tv_name" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 
     <ImageView
@@ -43,12 +45,14 @@
         android:layout_gravity="center"
         app:srcCompat="@drawable/ic_baseline_delete_24"
         android:textColor="@color/white"
+        android:padding="4dp"
         tools:ignore="VectorDrawableCompat"
+        android:background="@drawable/bg_rect_round_gray"
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/iv_add_to_cart"
-        app:layout_constraintTop_toTopOf="@id/tv_name"
-        app:layout_constraintBottom_toBottomOf="@id/tv_name" />
+        app:layout_constraintTop_toTopOf="@id/iv_add_to_cart"
+        app:layout_constraintBottom_toBottomOf="@id/iv_add_to_cart" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

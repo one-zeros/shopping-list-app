@@ -22,83 +22,69 @@
         android:id="@+id/et_enter_item"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintEnd_toStartOf="@id/iv_add"
+        app:layout_constraintEnd_toStartOf="@id/layout_add_icon"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/enter_an_item"
         android:background="@drawable/bg_edittext"
         android:padding="5dp"
         android:textSize="16sp"
+        android:inputType="textCapWords"
         android:layout_margin="16dp"/>
 
-    <ImageView
-        android:id="@+id/iv_add"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center"
-        android:layout_marginEnd="4dp"
-        app:srcCompat="@drawable/ic_baseline_add_box_24"
-        android:textColor="@color/white"
-        android:layout_marginRight="4dp"
-        tools:ignore="VectorDrawableCompat"
+    <include
+        layout="@layout/layout_add_icon"
+        android:id="@+id/layout_add_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+         android:layout_marginBottom="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/et_enter_item"
         app:layout_constraintTop_toTopOf="@id/et_enter_item"
         app:layout_constraintBottom_toBottomOf="@id/et_enter_item" />
 
-    <TextView
-        android:id="@+id/tv_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|center_vertical"
-        android:background="@drawable/bg_red_circle"
-        android:gravity="center"
-        android:maxLength="3"
-        android:padding="4dp"
-        android:text="1"
-        android:textColor="@color/white"
-        app:layout_constraintRight_toRightOf="@id/iv_add"
-        app:layout_constraintTop_toTopOf="@id/iv_add"
-        android:textSize="12sp"/>
+    <View
+        android:id="@+id/shopping_divider_top"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/rv_shopping"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_shopping"
         android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_height="0dp"
         android:layout_margin="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_enter_item"/>
+        app:layout_constraintTop_toBottomOf="@id/layout_add_icon"
+        app:layout_constraintBottom_toBottomOf="@id/guideline_hor"
+        tools:listitem="@layout/adapter_shopping_list_item"
+        tools:itemCount="3"
+        app:elevation="4dp"/>
 
-    <ImageView
-        android:id="@+id/iv_cart"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        app:srcCompat="@drawable/ic_baseline_add_shopping_cart_24"
-        tools:ignore="VectorDrawableCompat"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_hor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".5" />
+
+
+    <include
+        android:id="@+id/layout_cart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/layout_cart_icon"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rv_shopping"/>
-
-    <TextView
-        android:id="@+id/tv_cart_count"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_gravity="end|center_vertical"
-        android:background="@drawable/bg_blue_circle"
-        android:gravity="center"
-        android:maxLength="3"
-        android:padding="5dp"
-        android:layout_marginBottom="4dp"
-        android:text="1"
-        android:textColor="@color/white"
-        android:layout_marginLeft="-4dp"
-        android:layout_marginStart="-4dp"
-        app:layout_constraintLeft_toRightOf="@id/iv_cart"
-        app:layout_constraintBottom_toTopOf="@id/iv_cart"
-        android:textSize="12sp"/>
+        app:layout_constraintTop_toBottomOf="@id/guideline_hor"/>
 
     <TextView
         android:id="@+id/tv_carted_items"
@@ -111,18 +97,28 @@
         android:layout_marginStart="16dp"
         android:text="@string/carted_item"
         android:textColor="@color/textColor"
-        app:layout_constraintStart_toEndOf="@id/iv_cart"
-        app:layout_constraintTop_toTopOf="@id/iv_cart"
-        app:layout_constraintBottom_toBottomOf="@id/iv_cart"
+        app:layout_constraintStart_toEndOf="@id/layout_cart"
+        app:layout_constraintTop_toTopOf="@id/layout_cart"
+        app:layout_constraintBottom_toBottomOf="@id/layout_cart"
         android:textSize="18sp"/>
+    <View
+        android:id="@+id/cart_divider_top"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/rv_cart"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_cart"
         android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_height="0dp"
         android:layout_margin="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/adapter_cart_list_item"
+        tools:itemCount="1"
         app:layout_constraintTop_toBottomOf="@id/tv_carted_items"
         app:layout_constraintBottom_toTopOf="@id/tv_sync_time"/>
 
