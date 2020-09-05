@@ -2,18 +2,15 @@ package `in`.onenzeros.shopping_list.adapter
 
 import `in`.onenzeros.shopping_list.R
 import `in`.onenzeros.shopping_list.listener.CartItemClickListener
-import `in`.onenzeros.shopping_list.listener.ShoppingItemClickListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.adapter_cart_list_item.view.*
-import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.*
 import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.tv_name
 
 
-class CartAdapter(private val myDataset: ArrayList<String>) :
+class CartAdapter(private val myDataSet: ArrayList<String>) :
     RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
     var cartItemClickListener : CartItemClickListener? = null
 
@@ -30,7 +27,7 @@ class CartAdapter(private val myDataset: ArrayList<String>) :
     }
 
     override fun onBindViewHolder(holder: CartViewHolder, position: Int) {
-        val name = myDataset[position]
+        val name = myDataSet[position]
         holder.itemView.tv_name.text = name
         holder.itemView.iv_undo.setOnClickListener {
             removeItem(position,name)
@@ -39,15 +36,15 @@ class CartAdapter(private val myDataset: ArrayList<String>) :
 
     }
 
-    override fun getItemCount() = myDataset.size
+    override fun getItemCount() = myDataSet.size
 
     fun addCartItem(responses: String) {
-        myDataset.add(responses)
-        notifyItemInserted(myDataset.size-1)
+        myDataSet.add(responses)
+        notifyItemInserted(myDataSet.size-1)
     }
 
     fun removeItem(pos: Int, name: String) {
-        myDataset.remove(name)
+        myDataSet.remove(name)
         notifyItemRemoved(pos)
         notifyItemRangeChanged(pos, itemCount);
     }
