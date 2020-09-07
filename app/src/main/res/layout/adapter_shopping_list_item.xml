@@ -37,7 +37,6 @@
         app:layout_constraintEnd_toStartOf="@id/iv_delete"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <ImageView
         android:id="@+id/iv_delete"
         android:layout_width="wrap_content"

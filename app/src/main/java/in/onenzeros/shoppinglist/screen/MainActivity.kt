@@ -1,10 +1,10 @@
-package `in`.onenzeros.shopping_list.screen
+package `in`.onenzeros.shoppinglist.screen
 
-import `in`.onenzeros.shopping_list.R
-import `in`.onenzeros.shopping_list.adapter.CartAdapter
-import `in`.onenzeros.shopping_list.adapter.ShoppingAdapter
-import `in`.onenzeros.shopping_list.listener.CartItemClickListener
-import `in`.onenzeros.shopping_list.listener.ShoppingItemClickListener
+import `in`.onenzeros.shoppinglist.R
+import `in`.onenzeros.shoppinglist.adapter.CartAdapter
+import `in`.onenzeros.shoppinglist.adapter.ShoppingAdapter
+import `in`.onenzeros.shoppinglist.listener.CartItemClickListener
+import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -16,7 +16,6 @@ import kotlinx.android.synthetic.main.layout_add_icon.view.*
 import kotlinx.android.synthetic.main.layout_cart_icon.*
 
 //TODO Alka, please avoid _ in package name
-//TODO keep the source in src/main/kotlin instead of src/main/java
 class MainActivity : AppCompatActivity() {
 
     lateinit var shoppingAdapter: ShoppingAdapter
@@ -30,8 +29,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun initUI() {
         setCartListVisibility(false)
-        cartAdapter = CartAdapter(arrayListOf())
-        cartAdapter.setOnItemClickListener(object : CartItemClickListener {
+        cartAdapter =
+            CartAdapter(arrayListOf())
+        cartAdapter.setOnItemClickListener(object :
+            CartItemClickListener {
             //TODO Alka, format code before checkin :)- I have done it for now
             override fun undoToShoppingList(pos: Int, name: String) {
                 shoppingAdapter.addData(name)
@@ -49,8 +50,10 @@ class MainActivity : AppCompatActivity() {
         )
 
 
-        shoppingAdapter = ShoppingAdapter(arrayListOf())
-        shoppingAdapter.setOnItemClickListener(object : ShoppingItemClickListener {
+        shoppingAdapter =
+            ShoppingAdapter(arrayListOf())
+        shoppingAdapter.setOnItemClickListener(object :
+            ShoppingItemClickListener {
             override fun onAddToCart(pos: Int, name: String) {
                 cartAdapter.addCartItem(name)
                 setCartListVisibility(cartAdapter.itemCount > 0)
@@ -71,18 +74,14 @@ class MainActivity : AppCompatActivity() {
         )
 
         layout_add_icon.iv_add.setOnClickListener {
-            shoppingAdapter.addData(et_enter_item.text.toString())
-            et_enter_item.setText("")
-            updateBadgeCount()
+            addToShoppingList()
         }
 
         et_enter_item.setOnKeyListener(object : View.OnKeyListener {
             override fun onKey(v: View?, keyCode: Int, event: KeyEvent): Boolean {
                 // If the event is a key-down event on the "enter" button
                 if (event.action === KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                    shoppingAdapter.addData(et_enter_item.text.toString())
-                    et_enter_item.setText("")
-                    updateBadgeCount()
+                    addToShoppingList()
                     et_enter_item.requestFocus()
                     return true
                 }
@@ -91,11 +90,17 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun addToShoppingList() {
+        shoppingAdapter.addData(et_enter_item.text.toString())
+        et_enter_item.setText("")
+        updateBadgeCount()
+    }
+
     private fun updateBadgeCount() {
         if (shoppingAdapter.itemCount > 0)
-            shopping_divider_top.visibility = View.VISIBLE
+            cl_shopping.visibility = View.VISIBLE
         else
-            shopping_divider_top.visibility = View.GONE
+            cl_shopping.visibility = View.GONE
         layout_add_icon.tv_count.text = shoppingAdapter.itemCount.toString()
         tv_cart_count.text = cartAdapter.itemCount.toString()
     }
@@ -103,15 +108,9 @@ class MainActivity : AppCompatActivity() {
     //TODO please avoid single char variables, use meaningful names - check rest of the code too. - I have done it for now :)
     private fun setCartListVisibility(visible: Boolean) {
         if (visible) {
-            layout_cart.visibility = View.VISIBLE
-            tv_carted_items.visibility = View.VISIBLE
-            rv_cart.visibility = View.VISIBLE
-            cart_divider_top.visibility = View.VISIBLE
+            cl_cart.visibility = View.VISIBLE
         } else {
-            layout_cart.visibility = View.GONE
-            tv_carted_items.visibility = View.GONE
-            rv_cart.visibility = View.GONE
-            cart_divider_top.visibility = View.GONE
+            cl_cart.visibility = View.GONE
         }
     }
 }

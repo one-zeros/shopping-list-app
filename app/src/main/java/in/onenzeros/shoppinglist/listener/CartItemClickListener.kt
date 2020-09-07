@@ -1,4 +1,4 @@
-package `in`.onenzeros.shopping_list.listener
+package `in`.onenzeros.shoppinglist.listener
 
 interface CartItemClickListener {
     fun undoToShoppingList(pos :Int, name : String)

@@ -1,29 +1,25 @@
-package `in`.onenzeros.shopping_list.adapter
+package `in`.onenzeros.shoppinglist.adapter
 
-import `in`.onenzeros.shopping_list.R
-import `in`.onenzeros.shopping_list.listener.ShoppingItemClickListener
+import `in`.onenzeros.shoppinglist.R
+import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.*
-
 
 class ShoppingAdapter(private val mResponseList: ArrayList<String>) :
     RecyclerView.Adapter<ShoppingAdapter.ShoppingViewHolder>() {
 
-    var shoppingItemClickListener : ShoppingItemClickListener? = null
-    class ShoppingViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        fun bind(name: String) {
-            itemView.tv_name.text = name
-        }
-    }
+    private var shoppingItemClickListener : ShoppingItemClickListener? = null
+    class ShoppingViewHolder(view: View) : RecyclerView.ViewHolder(view)
 
     override fun onCreateViewHolder(parent: ViewGroup,
-                                    viewType: Int): ShoppingAdapter.ShoppingViewHolder {
+                                    viewType: Int): ShoppingViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_shopping_list_item, parent, false)
-        return ShoppingViewHolder(view)
+        return ShoppingViewHolder(
+            view
+        )
     }
 
     override fun onBindViewHolder(holder: ShoppingViewHolder, position: Int) {
@@ -44,10 +40,10 @@ class ShoppingAdapter(private val mResponseList: ArrayList<String>) :
         notifyItemInserted(mResponseList.size-1)
     }
 
-    fun removeItem(pos: Int, name: String) {
+    private fun removeItem(pos: Int, name: String) {
         mResponseList.remove(name)
         notifyItemRemoved(pos)
-        notifyItemRangeChanged(pos, itemCount);
+        notifyItemRangeChanged(pos, itemCount)
     }
 
     fun setOnItemClickListener(shoppingItemClickListener: ShoppingItemClickListener){

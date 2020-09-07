@@ -4,153 +4,177 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".screen.MainActivity">
+    tools:context="in.onenzeros.shoppinglist.screen.MainActivity">
 
     <androidx.appcompat.widget.Toolbar
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:id="@+id/toolbar"
-        android:background="@color/colorPrimaryDark"
-        app:titleTextColor="@color/white"
-        app:title="@string/shopping_list"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize">
-    </androidx.appcompat.widget.Toolbar>
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimaryDark"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/shopping_list"
+        app:titleTextColor="@color/white" />
 
     <EditText
         android:id="@+id/et_enter_item"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintEnd_toStartOf="@id/layout_add_icon"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/enter_an_item"
+        android:layout_margin="16dp"
         android:background="@drawable/bg_edittext"
+        android:hint="@string/enter_an_item"
+        android:inputType="textCapWords"
         android:padding="5dp"
         android:textSize="16sp"
-        android:inputType="textCapWords"
-        android:layout_margin="16dp"/>
+        app:layout_constraintEnd_toStartOf="@id/layout_add_icon"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <include
-        layout="@layout/layout_add_icon"
         android:id="@+id/layout_add_icon"
+        layout="@layout/layout_add_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-         android:layout_marginBottom="4dp"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintBottom_toBottomOf="@id/et_enter_item"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/et_enter_item"
-        app:layout_constraintTop_toTopOf="@id/et_enter_item"
-        app:layout_constraintBottom_toBottomOf="@id/et_enter_item" />
+        app:layout_constraintTop_toTopOf="@id/et_enter_item" />
 
-    <View
-        android:id="@+id/shopping_divider_top"
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_shopping"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider"
+        android:layout_height="0dp"
         android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="1"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constrainedHeight="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/rv_shopping"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_add_icon"
+        app:layout_constraintBottom_toTopOf="@id/cl_cart">
+        <View
+            android:id="@+id/shopping_divider_top"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@id/rv_shopping"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_shopping"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_add_icon"
-        app:layout_constraintBottom_toBottomOf="@id/guideline_hor"
-        tools:listitem="@layout/adapter_shopping_list_item"
-        tools:itemCount="3"
-        app:elevation="4dp"/>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_hor"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent=".5" />
+        android:layout_marginTop="16dp"
+        app:layout_goneMarginTop="0dp"
+        app:elevation="4dp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:itemCount="1"
+        tools:listitem="@layout/adapter_shopping_list_item" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_cart"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="visible"
+        app:layout_constraintVertical_bias="1"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHeight_min="250dp"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cl_shopping"
+        app:layout_constraintBottom_toTopOf="@id/tv_sync_time">
 
     <include
         android:id="@+id/layout_cart"
+        layout="@layout/layout_cart_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        layout="@layout/layout_cart_icon"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginLeft="4dp"
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/guideline_hor"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_carted_items"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|center_vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:gravity="center"
         android:padding="4dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
         android:text="@string/carted_item"
         android:textColor="@color/textColor"
-        app:layout_constraintStart_toEndOf="@id/layout_cart"
-        app:layout_constraintTop_toTopOf="@id/layout_cart"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@id/layout_cart"
-        android:textSize="18sp"/>
+        app:layout_constraintStart_toEndOf="@id/layout_cart"
+        app:layout_constraintTop_toTopOf="@id/layout_cart" />
+
     <View
         android:id="@+id/cart_divider_top"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/divider"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/rv_cart"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/rv_cart"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_cart"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/adapter_cart_list_item"
-        tools:itemCount="1"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_carted_items"
-        app:layout_constraintBottom_toTopOf="@id/tv_sync_time"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:itemCount="9"
+        tools:listitem="@layout/adapter_cart_list_item" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
         android:id="@+id/tv_sync_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|center_vertical"
-        android:gravity="center"
-        android:padding="4dp"
-        android:layout_marginLeft="16dp"
         android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:padding="4dp"
         android:text="@string/last_updated_on_holder"
         android:textColor="@color/textColor"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="10sp"
         app:layout_constraintBottom_toTopOf="@id/iv_done"
-        android:textSize="10sp"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/iv_done"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        app:srcCompat="@drawable/ic_baseline_done_24"
-        tools:ignore="VectorDrawableCompat"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_baseline_done_24"
+        tools:ignore="VectorDrawableCompat" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

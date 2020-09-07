@@ -1,4 +1,4 @@
-package `in`.onenzeros.shopping_list.listener
+package `in`.onenzeros.shoppinglist.listener
 
 interface ShoppingItemClickListener {
     fun onAddToCart(pos :Int, name : String)

@@ -1,7 +1,7 @@
-package `in`.onenzeros.shopping_list.adapter
+package `in`.onenzeros.shoppinglist.adapter
 
-import `in`.onenzeros.shopping_list.R
-import `in`.onenzeros.shopping_list.listener.CartItemClickListener
+import `in`.onenzeros.shoppinglist.R
+import `in`.onenzeros.shoppinglist.listener.CartItemClickListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,21 +9,18 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.adapter_cart_list_item.view.*
 import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.tv_name
 
-
 class CartAdapter(private val myDataSet: ArrayList<String>) :
     RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
-    var cartItemClickListener : CartItemClickListener? = null
+    private var cartItemClickListener : CartItemClickListener? = null
 
-    class CartViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        fun bind(name: String) {
-            itemView.tv_name.text = name
-        }
-    }
+    class CartViewHolder(view: View) : RecyclerView.ViewHolder(view)
 
     override fun onCreateViewHolder(parent: ViewGroup,
-                                    viewType: Int): CartAdapter.CartViewHolder {
+                                    viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_cart_list_item, parent, false)
-        return CartViewHolder(view)
+        return CartViewHolder(
+            view
+        )
     }
 
     override fun onBindViewHolder(holder: CartViewHolder, position: Int) {
@@ -43,10 +40,10 @@ class CartAdapter(private val myDataSet: ArrayList<String>) :
         notifyItemInserted(myDataSet.size-1)
     }
 
-    fun removeItem(pos: Int, name: String) {
+    private fun removeItem(pos: Int, name: String) {
         myDataSet.remove(name)
         notifyItemRemoved(pos)
-        notifyItemRangeChanged(pos, itemCount);
+        notifyItemRangeChanged(pos, itemCount)
     }
 
     fun setOnItemClickListener( cartItemClickListener : CartItemClickListener){
