@@ -14,13 +14,12 @@ import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.tv_name
 import kotlinx.android.synthetic.main.layout_cart_icon.view.*
 
 
-class ShoppingListAdapter(private val mShoppingList: ArrayList<ShoppingModel>, private val mCartList: ArrayList<ShoppingModel>) :
+class ShoppingListAdapter(private val mShoppingList: MutableList<String>, private val mCartList: MutableList<String>) :
     Adapter<ViewHolder>() {
 
     private val VIEW_TYPE_SHOPPING = 0
     private val VIEW_TYPE_CART = 1
     private val VIEW_TYPE_HEADER_CART = 2
-
     private var shoppingItemClickListener : ShoppingItemClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup,
@@ -65,7 +64,7 @@ class ShoppingListAdapter(private val mShoppingList: ArrayList<ShoppingModel>, p
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (holder) {
             is ShoppingViewHolder -> {
-                val name = mShoppingList[position].name
+                val name = mShoppingList[position]
                 holder.bind(name)
                 holder.itemView.iv_add_to_cart.setOnClickListener {
                     addCartListItem(position,name)
@@ -78,8 +77,8 @@ class ShoppingListAdapter(private val mShoppingList: ArrayList<ShoppingModel>, p
             }
             is CartViewHolder -> {
                 val pos = position - mShoppingList.size -1
-                val name = mCartList[pos].name
-                holder.bind(mCartList[pos].name)
+                val name = mCartList[pos]
+                holder.bind(mCartList[pos])
                 holder.itemView.iv_undo.setOnClickListener {
                     undoCartListItem(pos,name)
                     shoppingItemClickListener?.undoToShoppingList(position, name)
@@ -115,24 +114,25 @@ class ShoppingListAdapter(private val mShoppingList: ArrayList<ShoppingModel>, p
     }
 
     fun addShoppingListItem(responses: String) {
-        mShoppingList.add(ShoppingModel(VIEW_TYPE_SHOPPING,responses))
+        mShoppingList.add(responses)
         notifyItemInserted(mShoppingList.size-1)
     }
 
     private fun deleteShoppingListItem(position: Int, responses: String) {
-        mShoppingList.removeAt(position)
+        mShoppingList.remove(responses)
         notifyItemRemoved(position)
+        notifyItemRangeChanged(0, position)
     }
 
     private fun addCartListItem(position: Int, responses: String) {
-        mShoppingList.removeAt(position)
-        mCartList.add(ShoppingModel(VIEW_TYPE_CART,responses))
+        mShoppingList.remove(responses)
+        mCartList.add(responses)
         notifyDataSetChanged()
     }
 
     private fun undoCartListItem(position: Int, responses: String) {
-        mCartList.removeAt(position)
-        mShoppingList.add(ShoppingModel(VIEW_TYPE_SHOPPING,responses))
+        mCartList.remove(responses)
+        mShoppingList.add(responses)
         notifyDataSetChanged()
     }
 

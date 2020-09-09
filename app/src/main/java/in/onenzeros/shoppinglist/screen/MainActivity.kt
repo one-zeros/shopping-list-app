@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.KeyEvent.ACTION_DOWN
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -68,9 +69,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addToShoppingList() {
-        shoppingAdapter.addShoppingListItem(et_enter_item.text.toString())
-        et_enter_item.setText("")
-        updateBadgeCount()
+        if (et_enter_item.text.toString().isNotEmpty()) {
+            shoppingAdapter.addShoppingListItem(et_enter_item.text.toString())
+            et_enter_item.setText("")
+            updateBadgeCount()
+        }
+        else {
+            Toast.makeText(this, getString(R.string.empty_shopping_item),Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun updateBadgeCount() {
