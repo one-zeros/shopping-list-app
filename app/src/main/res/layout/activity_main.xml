@@ -17,7 +17,7 @@
         app:title="@string/shopping_list"
         app:titleTextColor="@color/white" />
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/et_enter_item"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

@@ -5,4 +5,5 @@
     <string name="carted_item">(Carted Items)</string>
     <string name="last_updated_on_holder">Last updated on 29/08/2020, 20:16:52</string>
     <string name="empty_shopping_item">Please enter shopping item</string>
+    <string name="something_went_wrong">Something went wrong.</string>
 </resources>

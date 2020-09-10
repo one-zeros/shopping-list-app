@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.tv_name
 import kotlinx.android.synthetic.main.layout_cart_icon.view.*
 
 
-class ShoppingListAdapter(private val mShoppingList: MutableList<String>, private val mCartList: MutableList<String>) :
+class ShoppingListAdapter(private var mShoppingList: MutableList<String>, private var mCartList: MutableList<String>) :
     Adapter<ViewHolder>() {
 
     private val VIEW_TYPE_SHOPPING = 0
@@ -160,6 +160,12 @@ class ShoppingListAdapter(private val mShoppingList: MutableList<String>, privat
 
     override fun getItemCount(): Int {
         return mShoppingList.size + mCartList.size+1
+    }
+
+    fun changeData(mShoppingList: MutableList<String>, mCartList: MutableList<String>) {
+        this.mShoppingList = mShoppingList
+        this.mCartList = mCartList
+        notifyDataSetChanged()
     }
 }
 
