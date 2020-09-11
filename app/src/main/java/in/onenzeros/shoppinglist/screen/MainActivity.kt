@@ -5,7 +5,9 @@ import `in`.onenzeros.shoppinglist.adapter.ShoppingListAdapter
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import `in`.onenzeros.shoppinglist.model.DefaultListResponse
 import `in`.onenzeros.shoppinglist.model.ShoppingItemResponse
+import `in`.onenzeros.shoppinglist.model.ShoppingModel
 import `in`.onenzeros.shoppinglist.rest.ApiService
+import `in`.onenzeros.shoppinglist.utils.Utility
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -25,7 +27,6 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-import java.io.InputStream
 
 //TODO Alka, please avoid _ in package name
 class MainActivity : AppCompatActivity() {
@@ -35,8 +36,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var shoppingAdapter: ShoppingListAdapter
-    private var mShoppingList: MutableList<String> = arrayListOf()
-    private var mCartList: MutableList<String> = arrayListOf()
+    private lateinit var shoppingResponse: ShoppingItemResponse
+    private var mShoppingList: ArrayList<ShoppingModel> = arrayListOf()
+    private var mCartList: ArrayList<ShoppingModel> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,14 +54,17 @@ class MainActivity : AppCompatActivity() {
         val listItemType = object : TypeToken<ShoppingItemResponse>() {}.type
         val suggestionsList : MutableList<String> = mutableListOf()
 
-        var shoppingResponse: ShoppingItemResponse = gson.fromJson(loadJSONFromAsset(), listItemType)
-        shoppingResponse.forEachIndexed { idx, shoppingCategory ->
+        shoppingResponse = gson.fromJson(loadJSONFromAsset(), listItemType)
+        shoppingResponse.forEachIndexed { _, shoppingCategory ->
             suggestionsList.addAll(shoppingCategory.items)
         }
         Log.e("Main", "${suggestionsList.size}")
         val adapter = ArrayAdapter(this,
             android.R.layout.simple_list_item_1, suggestionsList)
         et_enter_item.setAdapter(adapter)
+        et_enter_item.setOnItemClickListener { _, _, _, _ ->
+            addToShoppingList()
+        }
     }
 
     private fun initUI() {
@@ -67,13 +72,13 @@ class MainActivity : AppCompatActivity() {
             ShoppingListAdapter(mShoppingList, mCartList)
         shoppingAdapter.setOnItemClickListener(object :
             ShoppingItemClickListener {
-            override fun onAddToCart(pos: Int, name: String) {
+            override fun onAddToCart(pos: Int, name: ShoppingModel) {
                 updateBadgeCount()
             }
-            override fun onDelete(pos: Int, name: String) {
+            override fun onDelete(pos: Int, name: ShoppingModel) {
                 updateBadgeCount()
             }
-            override fun undoToShoppingList(pos: Int, name: String) {
+            override fun undoToShoppingList(pos: Int, name: ShoppingModel) {
                 updateBadgeCount()
             }
         })
@@ -105,14 +110,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addToShoppingList() {
-        if (et_enter_item.text.toString().isNotEmpty()) {
-            shoppingAdapter.addShoppingListItem(et_enter_item.text.toString())
-            et_enter_item.setText("")
-            updateBadgeCount()
+        val itemName  = et_enter_item.text.toString()
+
+        if (itemName.isNotEmpty()) {
+            groupItemByCategory(itemName)?.let {
+                shoppingAdapter.addShoppingListItem(it)
+                et_enter_item.setText("")
+                updateBadgeCount()
+               }
         }
         else {
             Toast.makeText(this, getString(R.string.empty_shopping_item),Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun groupItemByCategory(itemName: String) : ShoppingModel? {
+        var shoppingModel: ShoppingModel? = null
+        shoppingResponse.forEachIndexed { _, shoppingCategory ->
+            if (shoppingCategory.items.contains(itemName)) {
+                shoppingModel =
+                    ShoppingModel(
+                        shoppingCategory.category,
+                        itemName,
+                        shoppingCategory.order
+                    )
+                return shoppingModel
+            }
+            else
+                shoppingModel =
+                    ShoppingModel(
+                        "Others",
+                        itemName,
+                        0
+                    )
+        }
+        return shoppingModel
     }
 
     private fun updateBadgeCount() {
@@ -151,10 +183,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setDefaultList(defaultListResponse: DefaultListResponse) {
-        mShoppingList = defaultListResponse.pending as MutableList<String>
-        mCartList = defaultListResponse.cart as MutableList<String>
+        defaultListResponse.pending.forEach {
+            groupItemByCategory(it)?.let {
+                    shoppingModel ->  mShoppingList.add(shoppingModel)
+            }
+        }
+        defaultListResponse.cart.forEach {
+            groupItemByCategory(it)?.let {
+                    shoppingModel ->  mCartList.add(shoppingModel)
+            }
+        }
         shoppingAdapter.changeData(mShoppingList,mCartList)
         updateBadgeCount()
+        tv_sync_time.visibility = View.VISIBLE
+        tv_sync_time.text = getString(R.string.last_updated_on_holder,Utility.getDate(defaultListResponse.lastUpdated))
     }
 
 }
