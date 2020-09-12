@@ -2,12 +2,13 @@ package `in`.onenzeros.shoppinglist.rest
 
 import `in`.onenzeros.shoppinglist.BuildConfig
 import `in`.onenzeros.shoppinglist.model.DefaultListResponse
+import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
+import retrofit2.http.*
 
 interface ApiService {
 
@@ -31,7 +32,13 @@ interface ApiService {
         }
     }
 
-    @GET("https://api.quickshoppinglist.com/")
+    @GET(".")
     fun getDefaultList(): Call<DefaultListResponse>
+
+    @GET("/{id}")
+    fun getExistingList(@Path("id") id: String): Call<DefaultListResponse>
+
+    @PUT(".")
+    fun updateExistingList(@Body request: UpdateListRequest): Call<DefaultListResponse>
 
 }

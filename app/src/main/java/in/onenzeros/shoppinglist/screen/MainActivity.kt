@@ -2,11 +2,14 @@ package `in`.onenzeros.shoppinglist.screen
 
 import `in`.onenzeros.shoppinglist.R
 import `in`.onenzeros.shoppinglist.adapter.ShoppingListAdapter
+import `in`.onenzeros.shoppinglist.enum.UpdateType
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import `in`.onenzeros.shoppinglist.model.DefaultListResponse
 import `in`.onenzeros.shoppinglist.model.ShoppingItemResponse
 import `in`.onenzeros.shoppinglist.model.ShoppingModel
 import `in`.onenzeros.shoppinglist.rest.ApiService
+import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
+import `in`.onenzeros.shoppinglist.utils.PreferenceUtil
 import `in`.onenzeros.shoppinglist.utils.Utility
 import android.os.Bundle
 import android.util.Log
@@ -39,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var shoppingResponse: ShoppingItemResponse
     private var mShoppingList: ArrayList<ShoppingModel> = arrayListOf()
     private var mCartList: ArrayList<ShoppingModel> = arrayListOf()
+    private lateinit var mPreferenceUtil: PreferenceUtil
+    private  var id: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +53,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initData() {
-        defaultListAPICall()
+        mPreferenceUtil = PreferenceUtil(this)
+        mPreferenceUtil.getListId()?.let {
+            if (it.isNotEmpty())
+                existingListAPICall(it)
+            else
+                defaultListAPICall()
+        } ?: kotlin.run {
+            defaultListAPICall()
+        }
 
         val gson = Gson()
         val listItemType = object : TypeToken<ShoppingItemResponse>() {}.type
@@ -72,14 +85,17 @@ class MainActivity : AppCompatActivity() {
             ShoppingListAdapter(mShoppingList, mCartList)
         shoppingAdapter.setOnItemClickListener(object :
             ShoppingItemClickListener {
-            override fun onAddToCart(pos: Int, name: ShoppingModel) {
+            override fun onAddToCart(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
+                updateListAPICall(id,UpdateType.PICKED.toString(),shoppingModel.name)
             }
-            override fun onDelete(pos: Int, name: ShoppingModel) {
+            override fun onDelete(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
+                updateListAPICall(id,UpdateType.REMOVE.toString(),shoppingModel.name)
             }
-            override fun undoToShoppingList(pos: Int, name: ShoppingModel) {
+            override fun undoToShoppingList(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
+                updateListAPICall(id,UpdateType.DROPPED.toString(),shoppingModel.name)
             }
         })
 
@@ -94,6 +110,12 @@ class MainActivity : AppCompatActivity() {
 
         layout_add_icon.iv_add.setOnClickListener {
             addToShoppingList()
+        }
+        iv_done.setOnClickListener {
+            mShoppingList.clear()
+            mCartList.clear()
+            shoppingAdapter.cleaData()
+            defaultListAPICall()
         }
 
         et_enter_item.setOnKeyListener(object : View.OnKeyListener {
@@ -117,7 +139,8 @@ class MainActivity : AppCompatActivity() {
                 shoppingAdapter.addShoppingListItem(it)
                 et_enter_item.setText("")
                 updateBadgeCount()
-               }
+                updateListAPICall(id,UpdateType.ADD.toString(),itemName)
+            }
         }
         else {
             Toast.makeText(this, getString(R.string.empty_shopping_item),Toast.LENGTH_LONG).show()
@@ -171,7 +194,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
                 if (response.code() == 200) {
                     response.body()?.let {
-                        setDefaultList(it)
+                        setListData(it)
                     }
                 }
             }
@@ -182,7 +205,47 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun setDefaultList(defaultListResponse: DefaultListResponse) {
+    private fun existingListAPICall(id: String) {
+        val call
+                = apiService.getExistingList(id)
+
+        call.enqueue(object : Callback<DefaultListResponse> {
+            override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
+                if (response.code() == 200) {
+                    response.body()?.let {
+                        setListData(it)
+                    }
+                }
+            }
+            override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
+                Log.e("defaultListAPICall","onFailure : ${t.printStackTrace()}")
+                Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong),Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    private fun updateListAPICall(id: String,action :String, item : String) {
+        val call
+                = apiService.updateExistingList(UpdateListRequest(id, action, item))
+
+        call.enqueue(object : Callback<DefaultListResponse> {
+            override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
+                if (response.code() == 200) {
+                    response.body()?.let {
+//                        setListData(it)
+                    }
+                }
+            }
+            override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
+                Log.e("defaultListAPICall","onFailure : ${t.printStackTrace()}")
+                Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong),Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    private fun setListData(defaultListResponse: DefaultListResponse) {
+        id = defaultListResponse.id
+        mPreferenceUtil.setListId(id)
         defaultListResponse.pending.forEach {
             groupItemByCategory(it)?.let {
                     shoppingModel ->  mShoppingList.add(shoppingModel)
@@ -197,6 +260,8 @@ class MainActivity : AppCompatActivity() {
         updateBadgeCount()
         tv_sync_time.visibility = View.VISIBLE
         tv_sync_time.text = getString(R.string.last_updated_on_holder,Utility.getDate(defaultListResponse.lastUpdated))
+        tv_list_id.text = "list id: $id"
+       Log.e("shopping list", "list id: ${id}")
     }
 
 }

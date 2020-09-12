@@ -172,8 +172,14 @@ class ShoppingListAdapter(private var mShoppingList: ArrayList<ShoppingModel>, p
     }
 
     fun changeData(mShoppingList: ArrayList<ShoppingModel>, mCartList: ArrayList<ShoppingModel>) {
-        this.mShoppingList = mShoppingList
-        this.mCartList = mCartList
+        this.mShoppingList = getGroupedList(mShoppingList)
+        this.mCartList = getGroupedList(mCartList)
+        notifyDataSetChanged()
+    }
+
+    fun cleaData() {
+        this.mShoppingList.clear()
+        this.mCartList.clear()
         notifyDataSetChanged()
     }
 }

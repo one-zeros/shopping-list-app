@@ -3,20 +3,17 @@ package `in`.onenzeros.shoppinglist.utils
 import android.content.Context
 import android.content.SharedPreferences
 
-public class PreferenceUtil  {
-    private var mPreferences: SharedPreferences? = null
+public class PreferenceUtil(context: Context?)  {
     val FILE_NAME = "APP_PREFERENCES"
-    val DEFAULT_LIST = "default_list"
+    val LIST_ID = "list_id"
+    private var mPreferences: SharedPreferences? = context?.getSharedPreferences(FILE_NAME,Context.MODE_PRIVATE)
 
-    fun PreferenceUtil(context: Context?) {
-        this.mPreferences = context?.getSharedPreferences(FILE_NAME,Context.MODE_PRIVATE)
+
+    fun getListId() :String?{
+        return this.mPreferences?.getString(LIST_ID, "").toString()
     }
 
-    fun getDefaultList() :String{
-        return this.mPreferences?.getString(DEFAULT_LIST, null).toString()
-    }
-
-    fun setDefaultList( id : String) {
-        this.mPreferences?.edit()?.putString(DEFAULT_LIST, id)?.apply()
+    fun setListId( id : String) {
+        this.mPreferences?.edit()?.putString(LIST_ID, id)?.apply()
     }
 }
