@@ -5,7 +5,7 @@ import `in`.onenzeros.shoppinglist.adapter.ShoppingListAdapter
 import `in`.onenzeros.shoppinglist.enum.UpdateType
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import `in`.onenzeros.shoppinglist.model.DefaultListResponse
-import `in`.onenzeros.shoppinglist.model.ShoppingItemResponse
+import `in`.onenzeros.shoppinglist.model.SuggestionListResponse
 import `in`.onenzeros.shoppinglist.model.ShoppingModel
 import `in`.onenzeros.shoppinglist.rest.ApiService
 import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
@@ -41,7 +41,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     }
 
     private lateinit var shoppingAdapter: ShoppingListAdapter
-    private lateinit var shoppingResponse: ShoppingItemResponse
+    private lateinit var shoppingResponse: SuggestionListResponse
     private var mShoppingList: ArrayList<ShoppingModel> = arrayListOf()
     private var mCartList: ArrayList<ShoppingModel> = arrayListOf()
     private lateinit var mPreferenceUtil: PreferenceUtil
@@ -51,6 +51,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private val noDelay = 0L
     private val everyTenSeconds = 10000L
     private var netConnected = false
+    val suggestionsList : MutableList<String> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,21 +76,42 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             defaultListAPICall()
         }
 
-        val gson = Gson()
-        val listItemType = object : TypeToken<ShoppingItemResponse>() {}.type
-        val suggestionsList : MutableList<String> = mutableListOf()
+        getDefaultSuggestionList()
+        getSuggestionListAPICall()
+    }
 
-        shoppingResponse = gson.fromJson(loadJSONFromAsset(), listItemType)
-        shoppingResponse.forEachIndexed { _, shoppingCategory ->
-            suggestionsList.addAll(shoppingCategory.items)
-        }
-        Log.e("Main", "${suggestionsList.size}")
+    private fun setSuggestionAdapter() {
         val adapter = ArrayAdapter(this,
             android.R.layout.simple_list_item_1, suggestionsList)
         et_enter_item.setAdapter(adapter)
         et_enter_item.setOnItemClickListener { _, _, _, _ ->
             addToShoppingList()
+        }    }
+
+    private fun getDefaultSuggestionList() {
+        var shoppingListText : String? = ""
+        val gson = Gson()
+        val listItemType = object : TypeToken<SuggestionListResponse>() {}.type
+
+        Log.e("loadJSONFromAsset",loadJSONFromAsset())
+
+        shoppingListText = if(mPreferenceUtil.getSuggestionList().isNullOrEmpty()) {
+            loadJSONFromAsset()
+        } else{
+            mPreferenceUtil.getSuggestionList()
         }
+
+        shoppingResponse = gson.fromJson(shoppingListText, listItemType)
+        setSuggestionList(shoppingResponse)
+    }
+
+    private fun setSuggestionList(shoppingResponse: SuggestionListResponse) {
+        suggestionsList.clear()
+        shoppingResponse.forEachIndexed { _, shoppingCategory ->
+            suggestionsList.addAll(shoppingCategory.items)
+        }
+        Log.e("Main", "${suggestionsList.size}")
+        setSuggestionAdapter()
     }
 
     private fun initUI() {
@@ -226,6 +248,25 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
                 Log.e("defaultListAPICall","onFailure : ${t.printStackTrace()}")
                 Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong),Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    private fun getSuggestionListAPICall() {
+        val call
+                = apiService.getSuggestionList()
+
+        call.enqueue(object : Callback<SuggestionListResponse> {
+            override fun onResponse(call: Call<SuggestionListResponse>, response: Response<SuggestionListResponse>) {
+                if (response.code() == 200) {
+                    response.body()?.let {
+                        val listItemType = object : TypeToken<SuggestionListResponse>() {}.type
+                        mPreferenceUtil.setSuggestionList(Gson().toJson(it,listItemType))
+                        setSuggestionList(it)
+                    }
+                }
+            }
+            override fun onFailure(call: Call<SuggestionListResponse>, t: Throwable) {
             }
         })
     }

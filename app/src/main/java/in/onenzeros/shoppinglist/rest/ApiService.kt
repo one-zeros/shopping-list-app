@@ -2,6 +2,7 @@ package `in`.onenzeros.shoppinglist.rest
 
 import `in`.onenzeros.shoppinglist.BuildConfig
 import `in`.onenzeros.shoppinglist.model.DefaultListResponse
+import `in`.onenzeros.shoppinglist.model.SuggestionListResponse
 import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -40,5 +41,8 @@ interface ApiService {
 
     @PUT(".")
     fun updateExistingList(@Body request: UpdateListRequest): Call<DefaultListResponse>
+
+    @GET("https://s3.ap-south-1.amazonaws.com/quickshoppinglist.com/data/shoppingItems.json")
+    fun getSuggestionList(): Call<SuggestionListResponse>
 
 }

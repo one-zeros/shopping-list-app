@@ -1,8 +1,8 @@
 package `in`.onenzeros.shoppinglist.model
 
-class ShoppingItemResponse : ArrayList<ShoppingItemResponseItem>()
+class SuggestionListResponse : ArrayList<SuggestionListItem>()
 
-data class ShoppingItemResponseItem(
+data class SuggestionListItem(
     val category: String,
     val items: List<String>,
     val order: Int
