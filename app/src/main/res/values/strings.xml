@@ -5,5 +5,6 @@
     <string name="carted_item">(Carted Items)</string>
     <string name="last_updated_on_holder">Last updated on %s</string>
     <string name="empty_shopping_item">Please enter shopping item</string>
+    <string name="valid_shopping_item">Please enter a valid item</string>
     <string name="something_went_wrong">Something went wrong.</string>
 </resources>

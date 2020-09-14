@@ -9,6 +9,7 @@ import `in`.onenzeros.shoppinglist.model.ShoppingItemResponse
 import `in`.onenzeros.shoppinglist.model.ShoppingModel
 import `in`.onenzeros.shoppinglist.rest.ApiService
 import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
+import `in`.onenzeros.shoppinglist.utils.BaseActivity
 import `in`.onenzeros.shoppinglist.utils.PreferenceUtil
 import `in`.onenzeros.shoppinglist.utils.Utility
 import android.os.Bundle
@@ -18,7 +19,6 @@ import android.view.KeyEvent.ACTION_DOWN
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
@@ -30,9 +30,11 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
+import java.util.*
+import kotlin.collections.ArrayList
 
 //TODO Alka, please avoid _ in package name
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private val apiService by lazy {
         ApiService.create()
@@ -45,20 +47,30 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mPreferenceUtil: PreferenceUtil
     private  var id: String = ""
 
+    private lateinit var timer: Timer
+    private val noDelay = 0L
+    private val everyTenSeconds = 10000L
+    private var netConnected = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initUI()
         initData()
+        setConnectionChangeListener(this)
     }
 
     private fun initData() {
         mPreferenceUtil = PreferenceUtil(this)
         mPreferenceUtil.getListId()?.let {
-            if (it.isNotEmpty())
+
+            if (it.isNotEmpty()) {
+                id = it
                 existingListAPICall(it)
-            else
+            }
+            else {
                 defaultListAPICall()
+            }
         } ?: kotlin.run {
             defaultListAPICall()
         }
@@ -111,10 +123,9 @@ class MainActivity : AppCompatActivity() {
         layout_add_icon.iv_add.setOnClickListener {
             addToShoppingList()
         }
+
         iv_done.setOnClickListener {
-            mShoppingList.clear()
-            mCartList.clear()
-            shoppingAdapter.cleaData()
+            clearListData()
             defaultListAPICall()
         }
 
@@ -131,15 +142,29 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun clearListData() {
+        mShoppingList.clear()
+        mCartList.clear()
+        shoppingAdapter.cleaData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        syncFromServer()
+    }
+
     private fun addToShoppingList() {
         val itemName  = et_enter_item.text.toString()
-
         if (itemName.isNotEmpty()) {
-            groupItemByCategory(itemName)?.let {
-                shoppingAdapter.addShoppingListItem(it)
-                et_enter_item.setText("")
-                updateBadgeCount()
-                updateListAPICall(id,UpdateType.ADD.toString(),itemName)
+            if(itemName.trim().isNotEmpty()) {
+                groupItemByCategory(itemName)?.let {
+                    shoppingAdapter.addShoppingListItem(it)
+                    et_enter_item.setText("")
+                    updateBadgeCount()
+                    updateListAPICall(id, UpdateType.ADD.toString(), itemName)
+                }
+            } else{
+                Toast.makeText(this, getString(R.string.valid_shopping_item),Toast.LENGTH_LONG).show()
             }
         }
         else {
@@ -213,6 +238,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
                 if (response.code() == 200) {
                     response.body()?.let {
+                        clearListData()
                         setListData(it)
                     }
                 }
@@ -262,6 +288,31 @@ class MainActivity : AppCompatActivity() {
         tv_sync_time.text = getString(R.string.last_updated_on_holder,Utility.getDate(defaultListResponse.lastUpdated))
         tv_list_id.text = "list id: $id"
        Log.e("shopping list", "list id: ${id}")
+    }
+
+    override fun onNetConnectionChanged(isConnected: Boolean) {
+        if(isConnected) {
+            netConnected = isConnected
+            initData()
+        }
+    }
+
+    private fun syncFromServer() {
+        val timerTask = object : TimerTask() {
+            override fun run() {
+                if(id.isNotEmpty() && netConnected)
+                    existingListAPICall(id)
+            }
+        }
+
+        timer = Timer()
+        timer.schedule(timerTask, noDelay, everyTenSeconds)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        timer.cancel()
+        timer.purge()
     }
 
 }
