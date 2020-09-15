@@ -44,6 +44,9 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private lateinit var shoppingResponse: SuggestionListResponse
     private var mShoppingList: ArrayList<ShoppingModel> = arrayListOf()
     private var mCartList: ArrayList<ShoppingModel> = arrayListOf()
+    private var mUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
+    private var mLocalUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
+    private var mSyncUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
     private lateinit var mPreferenceUtil: PreferenceUtil
     private  var id: String = ""
 
@@ -51,7 +54,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private val noDelay = 0L
     private val everyTenSeconds = 10000L
     private var netConnected = false
-    val suggestionsList : MutableList<String> = mutableListOf()
+    private val suggestionsList : MutableList<String> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,21 +66,60 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private fun initData() {
         mPreferenceUtil = PreferenceUtil(this)
-        mPreferenceUtil.getListId()?.let {
+        getDefaultSuggestionList()
+        mLocalUpdateList = getPendingUpdateList()
 
-            if (it.isNotEmpty()) {
-                id = it
-                existingListAPICall(it)
-            }
-            else {
+        if(netConnected) {
+            mPreferenceUtil.getListId()?.let {
+
+                if (it.isNotEmpty()) {
+                    id = it
+                    existingListAPICall(it)
+                } else {
+                    defaultListAPICall()
+                }
+            } ?: kotlin.run {
                 defaultListAPICall()
             }
-        } ?: kotlin.run {
-            defaultListAPICall()
+            getSuggestionListAPICall()
+            syncPendingList()
+            syncFromServer()
+
+        } else {
+            val gson = Gson()
+            if(!mPreferenceUtil.getPendingList().isNullOrEmpty() && !mPreferenceUtil.getCartList().isNullOrEmpty() ){
+                val pendingListString  = mPreferenceUtil.getPendingList()
+                val cartListString  = mPreferenceUtil.getCartList()
+                val listType = object : TypeToken<List<ShoppingModel>>() {}.type
+
+                id = mPreferenceUtil.getListId().toString()
+                mShoppingList  = gson.fromJson(pendingListString, listType)
+                mCartList  = gson.fromJson(cartListString, listType)
+                mPreferenceUtil.getLastUpdateTime()?.let { setListData(id, it) }
+            }
         }
 
-        getDefaultSuggestionList()
-        getSuggestionListAPICall()
+    }
+
+    private fun syncPendingList() {
+        if(mLocalUpdateList.size>0)
+            mSyncUpdateList.addAll(mLocalUpdateList)
+        if(mUpdateList.size>0)
+            mSyncUpdateList.addAll(mUpdateList)
+        if(mSyncUpdateList.size>0)
+            updateListAPICall(mSyncUpdateList[0],true)
+    }
+
+    private fun getPendingUpdateList(): ArrayList<UpdateListRequest> {
+        mPreferenceUtil.getPendingUpdateList()?.let {
+            if(it.isNotEmpty()){
+                val gson = Gson()
+                val listType = object : TypeToken<List<UpdateListRequest>>() {}.type
+                val listString  = it
+                return gson.fromJson(listString, listType)
+            }
+        }
+        return arrayListOf()
     }
 
     private fun setSuggestionAdapter() {
@@ -86,16 +128,14 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         et_enter_item.setAdapter(adapter)
         et_enter_item.setOnItemClickListener { _, _, _, _ ->
             addToShoppingList()
-        }    }
+        }
+    }
 
     private fun getDefaultSuggestionList() {
-        var shoppingListText : String? = ""
         val gson = Gson()
         val listItemType = object : TypeToken<SuggestionListResponse>() {}.type
 
-        Log.e("loadJSONFromAsset",loadJSONFromAsset())
-
-        shoppingListText = if(mPreferenceUtil.getSuggestionList().isNullOrEmpty()) {
+        val shoppingListText: String? = if(mPreferenceUtil.getSuggestionList().isNullOrEmpty()) {
             loadJSONFromAsset()
         } else{
             mPreferenceUtil.getSuggestionList()
@@ -110,7 +150,6 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         shoppingResponse.forEachIndexed { _, shoppingCategory ->
             suggestionsList.addAll(shoppingCategory.items)
         }
-        Log.e("Main", "${suggestionsList.size}")
         setSuggestionAdapter()
     }
 
@@ -121,15 +160,15 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             ShoppingItemClickListener {
             override fun onAddToCart(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                updateListAPICall(id,UpdateType.PICKED.toString(),shoppingModel.name)
+                updateListAPICall(UpdateListRequest(id,UpdateType.PICKED.toString(),shoppingModel.name),false)
             }
             override fun onDelete(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                updateListAPICall(id,UpdateType.REMOVE.toString(),shoppingModel.name)
+                updateListAPICall(UpdateListRequest(id,UpdateType.REMOVE.toString(),shoppingModel.name),false)
             }
             override fun undoToShoppingList(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                updateListAPICall(id,UpdateType.DROPPED.toString(),shoppingModel.name)
+                updateListAPICall(UpdateListRequest(id,UpdateType.DROPPED.toString(),shoppingModel.name),false)
             }
         })
 
@@ -170,11 +209,6 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         shoppingAdapter.cleaData()
     }
 
-    override fun onResume() {
-        super.onResume()
-        syncFromServer()
-    }
-
     private fun addToShoppingList() {
         val itemName  = et_enter_item.text.toString()
         if (itemName.isNotEmpty()) {
@@ -183,7 +217,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
                     shoppingAdapter.addShoppingListItem(it)
                     et_enter_item.setText("")
                     updateBadgeCount()
-                    updateListAPICall(id, UpdateType.ADD.toString(), itemName)
+                    updateListAPICall(UpdateListRequest(id, UpdateType.ADD.toString(), itemName),false)
                 }
             } else{
                 Toast.makeText(this, getString(R.string.valid_shopping_item),Toast.LENGTH_LONG).show()
@@ -219,7 +253,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private fun updateBadgeCount() {
         layout_add_icon.tv_count.text = shoppingAdapter.getShoppingListItemCount().toString()
-        tv_cart_count.text = shoppingAdapter.getCartListItemCount().toString()
+        tv_cart_count?.text = shoppingAdapter.getCartListItemCount().toString()
     }
 
     private fun loadJSONFromAsset(): String? {
@@ -241,7 +275,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
                 if (response.code() == 200) {
                     response.body()?.let {
-                        setListData(it)
+                        parseListData(it)
                     }
                 }
             }
@@ -280,61 +314,108 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
                 if (response.code() == 200) {
                     response.body()?.let {
                         clearListData()
-                        setListData(it)
+                        parseListData(it)
                     }
                 }
             }
             override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
-                Log.e("defaultListAPICall","onFailure : ${t.printStackTrace()}")
-                Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong),Toast.LENGTH_LONG).show()
             }
         })
     }
 
-    private fun updateListAPICall(id: String,action :String, item : String) {
-        val call
-                = apiService.updateExistingList(UpdateListRequest(id, action, item))
+    private fun updateListAPICall(updateListRequest: UpdateListRequest, isPendingList : Boolean) {
+        if(netConnected) {
+            val call = apiService.updateExistingList(updateListRequest)
 
-        call.enqueue(object : Callback<DefaultListResponse> {
-            override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
-                if (response.code() == 200) {
-                    response.body()?.let {
-//                        setListData(it)
+            call.enqueue(object : Callback<DefaultListResponse> {
+                override fun onResponse(
+                    call: Call<DefaultListResponse>,
+                    response: Response<DefaultListResponse>
+                ) {
+                    if (response.code() == 200) {
+                        response.body()?.let {
+                            if(isPendingList) {
+                                clearListData()
+                                parseListData(it)
+                                mSyncUpdateList.removeAt(0)
+                                savePendingUpdateList(mSyncUpdateList, false)
+                                if(mSyncUpdateList.size>0)
+                                    updateListAPICall(mSyncUpdateList[0],true)
+                            }
+                        }
                     }
                 }
-            }
-            override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
-                Log.e("defaultListAPICall","onFailure : ${t.printStackTrace()}")
-                Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong),Toast.LENGTH_LONG).show()
-            }
-        })
+
+                override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
+                   if(isPendingList)
+                       if(mSyncUpdateList.size>0)
+                           updateListAPICall(mSyncUpdateList[0],true)
+                }
+            })
+        } else{
+            mUpdateList.add(updateListRequest)
+        }
     }
 
-    private fun setListData(defaultListResponse: DefaultListResponse) {
-        id = defaultListResponse.id
-        mPreferenceUtil.setListId(id)
-        defaultListResponse.pending.forEach {
+    private fun savePendingUpdateList(
+        mUpdateList: ArrayList<UpdateListRequest>,
+        isNewList: Boolean) {
+        if(mUpdateList.isNotEmpty()) {
+            var newList = arrayListOf<UpdateListRequest>()
+            if(isNewList && mLocalUpdateList.isNotEmpty()){
+                newList.addAll(mLocalUpdateList)
+                newList.addAll(mUpdateList)
+            } else {
+                newList = mUpdateList
+            }
+
+            val updateListString = Gson().toJson(newList)
+            mPreferenceUtil.setPendingUpdateList(updateListString)
+            Log.e("mUpdateList", updateListString)
+        }
+    }
+
+    private fun parseListData(defaultListResponse: DefaultListResponse) {
+        val pendingList = defaultListResponse.pending.distinct()
+        pendingList.forEach {
             groupItemByCategory(it)?.let {
                     shoppingModel ->  mShoppingList.add(shoppingModel)
             }
         }
-        defaultListResponse.cart.forEach {
+        val cartList = defaultListResponse.cart.distinct()
+        cartList.forEach {
             groupItemByCategory(it)?.let {
                     shoppingModel ->  mCartList.add(shoppingModel)
             }
         }
+        val time = getString(R.string.last_updated_on_holder,Utility.getDate(defaultListResponse.lastUpdated))
+        setListData(defaultListResponse.id,time)
+    }
+
+    private fun setListData(id: String, time: String) {
         shoppingAdapter.changeData(mShoppingList,mCartList)
         updateBadgeCount()
         tv_sync_time.visibility = View.VISIBLE
-        tv_sync_time.text = getString(R.string.last_updated_on_holder,Utility.getDate(defaultListResponse.lastUpdated))
-        tv_list_id.text = "list id: $id"
-       Log.e("shopping list", "list id: ${id}")
+        tv_sync_time.text = time
+        saveListToPreference(id, mShoppingList, mCartList,tv_sync_time.text.toString())
+
+        tv_list_id.text = "list id: ${this.id}"
+    }
+
+    private fun saveListToPreference(id : String, mShoppingList: ArrayList<ShoppingModel>, mCartList: ArrayList<ShoppingModel>, date: String) {
+        this.id = id
+        mPreferenceUtil.setListId(id)
+        mPreferenceUtil.setPendingList(Gson().toJson(mShoppingList))
+        mPreferenceUtil.setCartList(Gson().toJson(mCartList))
+        mPreferenceUtil.setLastUpdateTime(date)
     }
 
     override fun onNetConnectionChanged(isConnected: Boolean) {
-        if(isConnected) {
+        if(isConnected && !netConnected) {
             netConnected = isConnected
             initData()
+        } else{
+            netConnected = isConnected
         }
     }
 
@@ -350,10 +431,16 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         timer.schedule(timerTask, noDelay, everyTenSeconds)
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
         timer.cancel()
         timer.purge()
+      }
+
+    override fun onStop() {
+        savePendingUpdateList(mUpdateList, true)
+        saveListToPreference(id, shoppingAdapter.getShoppingList(), shoppingAdapter.getCartList(), tv_sync_time.text.toString())
+        super.onStop()
     }
 
 }

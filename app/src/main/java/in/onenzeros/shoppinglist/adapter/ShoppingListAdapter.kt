@@ -171,6 +171,15 @@ class ShoppingListAdapter(private var mShoppingList: ArrayList<ShoppingModel>, p
         return mShoppingList.size + mCartList.size+1
     }
 
+    fun getShoppingList() : ArrayList<ShoppingModel> {
+        return mShoppingList
+    }
+
+
+    fun getCartList() : ArrayList<ShoppingModel> {
+        return mCartList
+    }
+
     fun changeData(mShoppingList: ArrayList<ShoppingModel>, mCartList: ArrayList<ShoppingModel>) {
         this.mShoppingList = getGroupedList(mShoppingList)
         this.mCartList = getGroupedList(mCartList)
