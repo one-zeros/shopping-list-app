@@ -67,7 +67,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private fun initData() {
         mPreferenceUtil = PreferenceUtil(this)
         getDefaultSuggestionList()
-        mLocalUpdateList = getPendingUpdateList()
+        mLocalUpdateList = getSavedPendingUpdateList()
 
         if(netConnected) {
             mPreferenceUtil.getListId()?.let {
@@ -102,15 +102,25 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     }
 
     private fun syncPendingList() {
-        if(mLocalUpdateList.size>0)
-            mSyncUpdateList.addAll(mLocalUpdateList)
-        if(mUpdateList.size>0)
-            mSyncUpdateList.addAll(mUpdateList)
+        getAllPendingUpdateList()
         if(mSyncUpdateList.size>0)
             updateListAPICall(mSyncUpdateList[0],true)
     }
 
-    private fun getPendingUpdateList(): ArrayList<UpdateListRequest> {
+    private fun getAllPendingUpdateList(): ArrayList<UpdateListRequest> {
+        mSyncUpdateList.clear()
+        if(mLocalUpdateList.size>0) {
+            mSyncUpdateList.addAll(mLocalUpdateList)
+            mLocalUpdateList.clear()
+        }
+        if(mUpdateList.size>0) {
+            mSyncUpdateList.addAll(mUpdateList)
+            mUpdateList.clear()
+        }
+        return mSyncUpdateList
+    }
+
+    private fun getSavedPendingUpdateList(): ArrayList<UpdateListRequest> {
         mPreferenceUtil.getPendingUpdateList()?.let {
             if(it.isNotEmpty()){
                 val gson = Gson()
@@ -360,19 +370,20 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private fun savePendingUpdateList(
         mUpdateList: ArrayList<UpdateListRequest>,
         isNewList: Boolean) {
+        var newList = arrayListOf<UpdateListRequest>()
+
         if(mUpdateList.isNotEmpty()) {
-            var newList = arrayListOf<UpdateListRequest>()
-            if(isNewList && mLocalUpdateList.isNotEmpty()){
+            if (isNewList && mLocalUpdateList.isNotEmpty()) {
                 newList.addAll(mLocalUpdateList)
                 newList.addAll(mUpdateList)
             } else {
                 newList = mUpdateList
             }
-
+        }
             val updateListString = Gson().toJson(newList)
             mPreferenceUtil.setPendingUpdateList(updateListString)
             Log.e("mUpdateList", updateListString)
-        }
+
     }
 
     private fun parseListData(defaultListResponse: DefaultListResponse) {
@@ -433,12 +444,15 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     override fun onPause() {
         super.onPause()
-        timer.cancel()
-        timer.purge()
+        if (::timer.isInitialized) {
+            timer.cancel()
+            timer.purge()
+        }
       }
 
     override fun onStop() {
-        savePendingUpdateList(mUpdateList, true)
+        getAllPendingUpdateList()
+        savePendingUpdateList(mSyncUpdateList, false)
         saveListToPreference(id, shoppingAdapter.getShoppingList(), shoppingAdapter.getCartList(), tv_sync_time.text.toString())
         super.onStop()
     }
