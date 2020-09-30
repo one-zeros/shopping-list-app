@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<FrameLayout xmlns:tools="http://schemas.android.com/tools"
     style="@android:style/Widget.ActionButton"
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:focusable="true"
@@ -35,5 +37,5 @@
         android:textColor="@color/white"
         android:textSize="10sp"/>
 
-
 </FrameLayout>
+</layout>

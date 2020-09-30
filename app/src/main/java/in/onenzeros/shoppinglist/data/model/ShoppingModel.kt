@@ -1,4 +1,4 @@
-package `in`.onenzeros.shoppinglist.model
+package `in`.onenzeros.shoppinglist.data.model
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize

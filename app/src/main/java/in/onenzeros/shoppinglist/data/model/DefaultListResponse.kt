@@ -1,4 +1,4 @@
-package `in`.onenzeros.shoppinglist.model
+package `in`.onenzeros.shoppinglist.data.model
 
 data class DefaultListResponse(
     val cart: List<String>,

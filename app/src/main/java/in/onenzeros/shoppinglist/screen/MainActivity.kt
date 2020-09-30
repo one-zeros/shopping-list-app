@@ -1,54 +1,49 @@
 package `in`.onenzeros.shoppinglist.screen
 
 import `in`.onenzeros.shoppinglist.R
+import `in`.onenzeros.shoppinglist.ShoppingListApp
 import `in`.onenzeros.shoppinglist.adapter.ShoppingListAdapter
+import `in`.onenzeros.shoppinglist.databinding.ActivityMainBinding
 import `in`.onenzeros.shoppinglist.enum.UpdateType
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
-import `in`.onenzeros.shoppinglist.model.DefaultListResponse
-import `in`.onenzeros.shoppinglist.model.SuggestionListResponse
-import `in`.onenzeros.shoppinglist.model.ShoppingModel
+import `in`.onenzeros.shoppinglist.data.model.DefaultListResponse
+import `in`.onenzeros.shoppinglist.data.model.SuggestionListResponse
+import `in`.onenzeros.shoppinglist.data.model.ShoppingModel
 import `in`.onenzeros.shoppinglist.rest.ApiService
 import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
 import `in`.onenzeros.shoppinglist.utils.BaseActivity
 import `in`.onenzeros.shoppinglist.utils.PreferenceUtil
 import `in`.onenzeros.shoppinglist.utils.Utility
+import `in`.onenzeros.viewModel.MainActivityViewModel
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.KeyEvent.ACTION_DOWN
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
+
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_add_icon.view.*
 import kotlinx.android.synthetic.main.layout_cart_icon.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
 //TODO Alka, please avoid _ in package name
 class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
-    private val apiService by lazy {
-        ApiService.create()
-    }
-
     private lateinit var shoppingAdapter: ShoppingListAdapter
     private lateinit var shoppingResponse: SuggestionListResponse
     private var mShoppingList: ArrayList<ShoppingModel> = arrayListOf()
     private var mCartList: ArrayList<ShoppingModel> = arrayListOf()
     private var mUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
-    private var mLocalUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
-    private var mSyncUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
-    private lateinit var mPreferenceUtil: PreferenceUtil
+    private var mPreferenceUtil: PreferenceUtil? = null
     private  var id: String = ""
+    private  var updateTime: String = ""
 
     private lateinit var timer: Timer
     private val noDelay = 0L
@@ -56,80 +51,84 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private var netConnected = false
     private val suggestionsList : MutableList<String> = mutableListOf()
 
+    var binding: ActivityMainBinding? = null
+    lateinit var viewModel: MainActivityViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        viewModel =  ViewModelProvider.AndroidViewModelFactory(application)
+            .create(MainActivityViewModel::class.java)
+        binding?.viewModel = viewModel
+        binding?.lifecycleOwner = this
+        binding?.executePendingBindings()
+        mPreferenceUtil = ShoppingListApp.mPreferenceUtil
         initUI()
-        initData()
         setConnectionChangeListener(this)
+        initObservers()
     }
 
-    private fun initData() {
-        mPreferenceUtil = PreferenceUtil(this)
-        getDefaultSuggestionList()
-        mLocalUpdateList = getSavedPendingUpdateList()
+    private fun initObservers() {
+        viewModel.newList.observe(this,
+            androidx.lifecycle.Observer {
+                clearListData()
+                parseListData(it)
+            })
 
-        if(netConnected) {
-            mPreferenceUtil.getListId()?.let {
+        viewModel.existingList.observe(this,
+            androidx.lifecycle.Observer {
+                clearListData()
+                parseListData(it)
+            })
 
-                if (it.isNotEmpty()) {
-                    id = it
-                    existingListAPICall(it)
-                } else {
-                    defaultListAPICall()
-                }
-            } ?: kotlin.run {
-                defaultListAPICall()
-            }
-            getSuggestionListAPICall()
-            syncPendingList()
-            syncFromServer()
+        viewModel.suggestionList.observe(this,
+            androidx.lifecycle.Observer {
+                shoppingResponse = it
+                setSuggestionList(it)
+            })
 
-        } else {
-            val gson = Gson()
-            if(!mPreferenceUtil.getPendingList().isNullOrEmpty() && !mPreferenceUtil.getCartList().isNullOrEmpty() ){
-                val pendingListString  = mPreferenceUtil.getPendingList()
-                val cartListString  = mPreferenceUtil.getCartList()
-                val listType = object : TypeToken<List<ShoppingModel>>() {}.type
+        viewModel.updateList.observe(this,
+            androidx.lifecycle.Observer {
+                mUpdateList.add(it)
+            })
 
-                id = mPreferenceUtil.getListId().toString()
-                mShoppingList  = gson.fromJson(pendingListString, listType)
-                mCartList  = gson.fromJson(cartListString, listType)
-                mPreferenceUtil.getLastUpdateTime()?.let { setListData(id, it) }
-            }
-        }
+        viewModel.id.observe(this,
+            androidx.lifecycle.Observer {
+                id = it
+            })
 
+        viewModel.pendingList.observe(this,
+            androidx.lifecycle.Observer {
+                mShoppingList = it as ArrayList<ShoppingModel>
+            })
+
+        viewModel.cartList.observe(this,
+            androidx.lifecycle.Observer {
+                mCartList = it as ArrayList<ShoppingModel>
+            })
+
+        viewModel.updateTime.observe(this,
+            androidx.lifecycle.Observer {
+                updateTime = it
+            })
+
+        viewModel.setList.observe(this,
+            androidx.lifecycle.Observer {
+                setListData()
+            })
+
+        viewModel.toastMsg.observe(this,
+            androidx.lifecycle.Observer {
+                if(it == "something_went_wrong")
+                    Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong), Toast.LENGTH_LONG).show()
+                else
+                    Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong), Toast.LENGTH_LONG).show()
+            })
     }
 
-    private fun syncPendingList() {
-        getAllPendingUpdateList()
-        if(mSyncUpdateList.size>0)
-            updateListAPICall(mSyncUpdateList[0],true)
-    }
-
-    private fun getAllPendingUpdateList(): ArrayList<UpdateListRequest> {
-        mSyncUpdateList.clear()
-        if(mLocalUpdateList.size>0) {
-            mSyncUpdateList.addAll(mLocalUpdateList)
-            mLocalUpdateList.clear()
-        }
-        if(mUpdateList.size>0) {
-            mSyncUpdateList.addAll(mUpdateList)
-            mUpdateList.clear()
-        }
-        return mSyncUpdateList
-    }
-
-    private fun getSavedPendingUpdateList(): ArrayList<UpdateListRequest> {
-        mPreferenceUtil.getPendingUpdateList()?.let {
-            if(it.isNotEmpty()){
-                val gson = Gson()
-                val listType = object : TypeToken<List<UpdateListRequest>>() {}.type
-                val listString  = it
-                return gson.fromJson(listString, listType)
-            }
-        }
-        return arrayListOf()
+    private fun syncOfflineData() {
+        viewModel.syncPendingList()
+        syncFromServer()
     }
 
     private fun setSuggestionAdapter() {
@@ -139,20 +138,6 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         et_enter_item.setOnItemClickListener { _, _, _, _ ->
             addToShoppingList()
         }
-    }
-
-    private fun getDefaultSuggestionList() {
-        val gson = Gson()
-        val listItemType = object : TypeToken<SuggestionListResponse>() {}.type
-
-        val shoppingListText: String? = if(mPreferenceUtil.getSuggestionList().isNullOrEmpty()) {
-            loadJSONFromAsset()
-        } else{
-            mPreferenceUtil.getSuggestionList()
-        }
-
-        shoppingResponse = gson.fromJson(shoppingListText, listItemType)
-        setSuggestionList(shoppingResponse)
     }
 
     private fun setSuggestionList(shoppingResponse: SuggestionListResponse) {
@@ -170,42 +155,42 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             ShoppingItemClickListener {
             override fun onAddToCart(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                updateListAPICall(UpdateListRequest(id,UpdateType.PICKED.toString(),shoppingModel.name),false)
+                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.PICKED.toString(),shoppingModel.name),false)
             }
             override fun onDelete(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                updateListAPICall(UpdateListRequest(id,UpdateType.REMOVE.toString(),shoppingModel.name),false)
+                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.REMOVE.toString(),shoppingModel.name),false)
             }
             override fun undoToShoppingList(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                updateListAPICall(UpdateListRequest(id,UpdateType.DROPPED.toString(),shoppingModel.name),false)
+                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.DROPPED.toString(),shoppingModel.name),false)
             }
         })
 
-        rv_shopping.layoutManager = LinearLayoutManager(this)
-        rv_shopping.adapter = shoppingAdapter
-        rv_shopping.addItemDecoration(
+        binding?.rvShopping?.layoutManager = LinearLayoutManager(this)
+        binding?.rvShopping?.adapter = shoppingAdapter
+        binding?.rvShopping?.addItemDecoration(
             DividerItemDecoration(
                 this,
-                (rv_shopping.layoutManager as LinearLayoutManager).orientation
+                (binding?.rvShopping?.layoutManager as LinearLayoutManager).orientation
             )
         )
 
-        layout_add_icon.iv_add.setOnClickListener {
+        binding?.layoutAddIcon?.ivAdd?.setOnClickListener {
             addToShoppingList()
         }
 
-        iv_done.setOnClickListener {
+        binding?.ivDone?.setOnClickListener {
             clearListData()
-            defaultListAPICall()
+            viewModel.loadNewList()
         }
 
-        et_enter_item.setOnKeyListener(object : View.OnKeyListener {
+        binding?.etEnterItem?.setOnKeyListener(object : View.OnKeyListener {
             override fun onKey(v: View?, keyCode: Int, event: KeyEvent): Boolean {
                 // If the event is a key-down event on the "enter" button
                 if (event.action === ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
                     addToShoppingList()
-                    et_enter_item.requestFocus()
+                    binding?.etEnterItem?.requestFocus()
                     return true
                 }
                 return false
@@ -227,7 +212,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
                     shoppingAdapter.addShoppingListItem(it)
                     et_enter_item.setText("")
                     updateBadgeCount()
-                    updateListAPICall(UpdateListRequest(id, UpdateType.ADD.toString(), itemName),false)
+                    viewModel.updateListAPICall(UpdateListRequest(id, UpdateType.ADD.toString(), itemName),false)
                 }
             } else{
                 Toast.makeText(this, getString(R.string.valid_shopping_item),Toast.LENGTH_LONG).show()
@@ -266,126 +251,6 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         tv_cart_count?.text = shoppingAdapter.getCartListItemCount().toString()
     }
 
-    private fun loadJSONFromAsset(): String? {
-        val jsonString: String
-        try {
-            jsonString = assets.open("shoppingItems.json").bufferedReader().use { it.readText() }
-        } catch (ioException: IOException) {
-            ioException.printStackTrace()
-            return null
-        }
-        return jsonString
-    }
-
-    private fun defaultListAPICall() {
-        val call
-                = apiService.getDefaultList()
-
-        call.enqueue(object : Callback<DefaultListResponse> {
-            override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
-                if (response.code() == 200) {
-                    response.body()?.let {
-                        parseListData(it)
-                    }
-                }
-            }
-            override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
-                Log.e("defaultListAPICall","onFailure : ${t.printStackTrace()}")
-                Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong),Toast.LENGTH_LONG).show()
-            }
-        })
-    }
-
-    private fun getSuggestionListAPICall() {
-        val call
-                = apiService.getSuggestionList()
-
-        call.enqueue(object : Callback<SuggestionListResponse> {
-            override fun onResponse(call: Call<SuggestionListResponse>, response: Response<SuggestionListResponse>) {
-                if (response.code() == 200) {
-                    response.body()?.let {
-                        val listItemType = object : TypeToken<SuggestionListResponse>() {}.type
-                        mPreferenceUtil.setSuggestionList(Gson().toJson(it,listItemType))
-                        setSuggestionList(it)
-                    }
-                }
-            }
-            override fun onFailure(call: Call<SuggestionListResponse>, t: Throwable) {
-            }
-        })
-    }
-
-    private fun existingListAPICall(id: String) {
-        val call
-                = apiService.getExistingList(id)
-
-        call.enqueue(object : Callback<DefaultListResponse> {
-            override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
-                if (response.code() == 200) {
-                    response.body()?.let {
-                        clearListData()
-                        parseListData(it)
-                    }
-                }
-            }
-            override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
-            }
-        })
-    }
-
-    private fun updateListAPICall(updateListRequest: UpdateListRequest, isPendingList : Boolean) {
-        if(netConnected) {
-            val call = apiService.updateExistingList(updateListRequest)
-
-            call.enqueue(object : Callback<DefaultListResponse> {
-                override fun onResponse(
-                    call: Call<DefaultListResponse>,
-                    response: Response<DefaultListResponse>
-                ) {
-                    if (response.code() == 200) {
-                        response.body()?.let {
-                            if(isPendingList) {
-                                clearListData()
-                                parseListData(it)
-                                mSyncUpdateList.removeAt(0)
-                                savePendingUpdateList(mSyncUpdateList, false)
-                                if(mSyncUpdateList.size>0)
-                                    updateListAPICall(mSyncUpdateList[0],true)
-                            }
-                        }
-                    }
-                }
-
-                override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
-                   if(isPendingList)
-                       if(mSyncUpdateList.size>0)
-                           updateListAPICall(mSyncUpdateList[0],true)
-                }
-            })
-        } else{
-            mUpdateList.add(updateListRequest)
-        }
-    }
-
-    private fun savePendingUpdateList(
-        mUpdateList: ArrayList<UpdateListRequest>,
-        isNewList: Boolean) {
-        var newList = arrayListOf<UpdateListRequest>()
-
-        if(mUpdateList.isNotEmpty()) {
-            if (isNewList && mLocalUpdateList.isNotEmpty()) {
-                newList.addAll(mLocalUpdateList)
-                newList.addAll(mUpdateList)
-            } else {
-                newList = mUpdateList
-            }
-        }
-            val updateListString = Gson().toJson(newList)
-            mPreferenceUtil.setPendingUpdateList(updateListString)
-            Log.e("mUpdateList", updateListString)
-
-    }
-
     private fun parseListData(defaultListResponse: DefaultListResponse) {
         val pendingList = defaultListResponse.pending.distinct()
         pendingList.forEach {
@@ -399,15 +264,16 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
                     shoppingModel ->  mCartList.add(shoppingModel)
             }
         }
-        val time = getString(R.string.last_updated_on_holder,Utility.getDate(defaultListResponse.lastUpdated))
-        setListData(defaultListResponse.id,time)
+        updateTime = getString(R.string.last_updated_on_holder,Utility.getDate(defaultListResponse.lastUpdated))
+        id = defaultListResponse.id
+        setListData()
     }
 
-    private fun setListData(id: String, time: String) {
+    private fun setListData() {
         shoppingAdapter.changeData(mShoppingList,mCartList)
         updateBadgeCount()
         tv_sync_time.visibility = View.VISIBLE
-        tv_sync_time.text = time
+        tv_sync_time.text = updateTime
         saveListToPreference(id, mShoppingList, mCartList,tv_sync_time.text.toString())
 
         tv_list_id.text = "list id: ${this.id}"
@@ -415,16 +281,17 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private fun saveListToPreference(id : String, mShoppingList: ArrayList<ShoppingModel>, mCartList: ArrayList<ShoppingModel>, date: String) {
         this.id = id
-        mPreferenceUtil.setListId(id)
-        mPreferenceUtil.setPendingList(Gson().toJson(mShoppingList))
-        mPreferenceUtil.setCartList(Gson().toJson(mCartList))
-        mPreferenceUtil.setLastUpdateTime(date)
+        mPreferenceUtil?.setListId(id)
+        mPreferenceUtil?.setPendingList(Gson().toJson(mShoppingList))
+        mPreferenceUtil?.setCartList(Gson().toJson(mCartList))
+        mPreferenceUtil?.setLastUpdateTime(date)
     }
 
     override fun onNetConnectionChanged(isConnected: Boolean) {
+        viewModel.setNetworkConnection(isConnected)
         if(isConnected && !netConnected) {
             netConnected = isConnected
-            initData()
+            syncOfflineData()
         } else{
             netConnected = isConnected
         }
@@ -434,7 +301,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         val timerTask = object : TimerTask() {
             override fun run() {
                 if(id.isNotEmpty() && netConnected)
-                    existingListAPICall(id)
+                    viewModel.lodExistingList(id)
             }
         }
 
@@ -451,9 +318,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
       }
 
     override fun onStop() {
-        getAllPendingUpdateList()
-        savePendingUpdateList(mSyncUpdateList, false)
-        saveListToPreference(id, shoppingAdapter.getShoppingList(), shoppingAdapter.getCartList(), tv_sync_time.text.toString())
+        viewModel.saveDataForOffline(id, shoppingAdapter.getShoppingList(), shoppingAdapter.getCartList(), tv_sync_time.text.toString())
         super.onStop()
     }
 

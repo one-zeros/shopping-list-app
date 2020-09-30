@@ -1,6 +1,6 @@
 package `in`.onenzeros.shoppinglist.listener
 
-import `in`.onenzeros.shoppinglist.model.ShoppingModel
+import `in`.onenzeros.shoppinglist.data.model.ShoppingModel
 
 interface ShoppingItemClickListener {
     fun onAddToCart(pos :Int, shoppingModel : ShoppingModel)

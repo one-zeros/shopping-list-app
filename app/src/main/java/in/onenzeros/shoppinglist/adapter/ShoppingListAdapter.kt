@@ -2,7 +2,7 @@ package `in`.onenzeros.shoppinglist.adapter
 
 import `in`.onenzeros.shoppinglist.R
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
-import `in`.onenzeros.shoppinglist.model.ShoppingModel
+import `in`.onenzeros.shoppinglist.data.model.ShoppingModel
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
