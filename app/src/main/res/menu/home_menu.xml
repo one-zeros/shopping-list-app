@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".screen.MainActivity">
+    <item
+        android:id="@+id/menu_share"
+        android:icon="@drawable/ic_baseline_share_24"
+        android:title="@string/share"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_help"
+        android:icon="@drawable/ic_baseline_help_24"
+        android:title="@string/help"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_setting"
+        android:icon="@drawable/ic_baseline_settings_24"
+        android:title="@string/setting"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/menu_story"
+                android:icon="@drawable/ic_baseline_story_24"
+                android:title="@string/story" />
+            <item
+                android:id="@+id/menu_about"
+                android:icon="@drawable/ic_baseline_about_24"
+                android:title="@string/about"
+                app:showAsAction="withText" />
+            <item
+                android:id="@+id/menu_contact"
+                android:icon="@drawable/ic_baseline_call_24"
+                android:title="@string/contact"
+                app:showAsAction="withText" />
+        </menu>
+    </item>
+</menu>

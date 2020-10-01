@@ -3,26 +3,28 @@ package `in`.onenzeros.shoppinglist.screen
 import `in`.onenzeros.shoppinglist.R
 import `in`.onenzeros.shoppinglist.ShoppingListApp
 import `in`.onenzeros.shoppinglist.adapter.ShoppingListAdapter
+import `in`.onenzeros.shoppinglist.data.model.DefaultListResponse
+import `in`.onenzeros.shoppinglist.data.model.ShoppingModel
+import `in`.onenzeros.shoppinglist.data.model.SuggestionListResponse
 import `in`.onenzeros.shoppinglist.databinding.ActivityMainBinding
 import `in`.onenzeros.shoppinglist.enum.UpdateType
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
-import `in`.onenzeros.shoppinglist.data.model.DefaultListResponse
-import `in`.onenzeros.shoppinglist.data.model.SuggestionListResponse
-import `in`.onenzeros.shoppinglist.data.model.ShoppingModel
-import `in`.onenzeros.shoppinglist.rest.ApiService
 import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
 import `in`.onenzeros.shoppinglist.utils.BaseActivity
 import `in`.onenzeros.shoppinglist.utils.PreferenceUtil
 import `in`.onenzeros.shoppinglist.utils.Utility
-import `in`.onenzeros.viewModel.MainActivityViewModel
+import `in`.onenzeros.shoppinglist.viewModel.MainActivityViewModel
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.KeyEvent.ACTION_DOWN
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,7 +33,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_add_icon.view.*
 import kotlinx.android.synthetic.main.layout_cart_icon.*
 import java.util.*
-import kotlin.collections.ArrayList
+
 
 //TODO Alka, please avoid _ in package name
 class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
@@ -44,6 +46,8 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private var mPreferenceUtil: PreferenceUtil? = null
     private  var id: String = ""
     private  var updateTime: String = ""
+    private  var emailAddress: String = "support@onenzeros.in"
+    private  var emailSubject: String = "Quick Shopping List"
 
     private lateinit var timer: Timer
     private val noDelay = 0L
@@ -57,6 +61,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        setSupportActionBar(binding?.toolbar)
         viewModel =  ViewModelProvider.AndroidViewModelFactory(application)
             .create(MainActivityViewModel::class.java)
         binding?.viewModel = viewModel
@@ -322,4 +327,44 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         super.onStop()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.home_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.menu_help -> openWebView(WebviewActivity.HELP_LINK)
+            R.id.menu_story -> openWebView(WebviewActivity.SYORY_LINK)
+            R.id.menu_about -> openWebView(WebviewActivity.ABOUT_LINK)
+            R.id.menu_contact -> sendEmail()
+            R.id.menu_share -> shareList()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun openWebView(link: String) {
+        startActivity(Intent(this, WebviewActivity::class.java).apply {
+            putExtra(WebviewActivity.ARG_URL, link)
+        })
+    }
+
+    private fun sendEmail() {
+        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:$emailAddress \"?&subject=$emailSubject ")
+        }
+        startActivity(Intent.createChooser(emailIntent, "Send mail"))
+    }
+
+    private fun shareList() {
+        try {
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.type = "text/plain"
+            var shareMessage = getString(R.string.share_msg,id)
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
+            startActivity(Intent.createChooser(shareIntent, "choose one"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 }

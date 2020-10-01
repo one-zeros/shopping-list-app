@@ -1,4 +1,4 @@
-package `in`.onenzeros.viewModel
+package `in`.onenzeros.shoppinglist.viewModel
 
 import `in`.onenzeros.shoppinglist.ShoppingListApp
 import `in`.onenzeros.shoppinglist.data.model.DefaultListResponse

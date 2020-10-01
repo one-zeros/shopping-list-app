@@ -10,5 +10,6 @@
     <color name="white">#FFF</color>
     <color name="red_bg">#C4624F</color>
     <color name="red">#FF0000</color>
+    <color name="menu_gray">#757575</color>
 
 </resources>

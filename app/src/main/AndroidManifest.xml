@@ -22,6 +22,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".screen.WebviewActivity" />
+
         <!-- The below code is for android OS version below N -->
         <receiver
             android:name=".utils.ConnectivityReceiver"

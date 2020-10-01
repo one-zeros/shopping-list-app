@@ -8,7 +8,7 @@
 
         <variable
             name="viewModel"
-            type="in.onenzeros.viewModel.MainActivityViewModel" />
+            type="in.onenzeros.shoppinglist.viewModel.MainActivityViewModel" />
     </data>
 
 <androidx.constraintlayout.widget.ConstraintLayout
