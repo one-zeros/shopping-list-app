@@ -17,6 +17,7 @@ import `in`.onenzeros.shoppinglist.viewModel.MainActivityViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.KeyEvent.ACTION_DOWN
 import android.view.Menu
@@ -69,8 +70,14 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         binding?.executePendingBindings()
         mPreferenceUtil = ShoppingListApp.mPreferenceUtil
         initUI()
+        syncOfflineData()
         setConnectionChangeListener(this)
         initObservers()
+        intent.data?.let {
+            handleDeeplinkData(it)
+        } ?: kotlin.run {
+            viewModel.initializeData()
+        }
     }
 
     private fun initObservers() {
@@ -129,6 +136,15 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
                 else
                     Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong), Toast.LENGTH_LONG).show()
             })
+    }
+
+    private fun handleDeeplinkData(uri: Uri) {
+        Log.e("handleDeeplinkData", "$intent, ${intent.data}")
+        id = uri.getQueryParameter("id").toString()
+        id.isNotEmpty().apply {
+            clearListData()
+            viewModel.initializeDataFromDeeplink(id)
+        }
     }
 
     private fun syncOfflineData() {

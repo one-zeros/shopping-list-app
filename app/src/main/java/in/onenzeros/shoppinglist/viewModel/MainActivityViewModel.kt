@@ -72,7 +72,15 @@ class MainActivityViewModel : AndroidViewModel {
     init {
         getDefaultSuggestionList()
         mLocalUpdateList = getSavedPendingUpdateList()
-        if(netConnected)
+ }
+
+    fun initializeDataFromDeeplink(id : String) {
+        clearAllPreviousData(id)
+        lodExistingList(id)
+    }
+
+    fun initializeData() {
+      if(netConnected)
             fetchNetworkData()
         else
             fetchLocalData()
@@ -295,6 +303,17 @@ class MainActivityViewModel : AndroidViewModel {
         getAllPendingUpdateList()
         savePendingUpdateList(mSyncUpdateList, false)
         saveListToPreference(id, shoppingList, cartList, syncTime)
+    }
+
+    private fun clearAllPreviousData(sharedListId: String) {
+        mLocalUpdateList.clear()
+        mSyncUpdateList.clear()
+        mUpdateList.clear()
+        mPreferenceUtil?.setPendingList("")
+        mPreferenceUtil?.setCartList("")
+        mPreferenceUtil?.setPendingUpdateList("")
+        mPreferenceUtil?.setLastUpdateTime("")
+        mPreferenceUtil?.setListId(sharedListId)
     }
 
 }
