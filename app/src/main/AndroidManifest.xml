@@ -34,6 +34,7 @@
         </activity>
 
         <activity android:name=".screen.WebviewActivity" />
+        <activity android:name=".screen.YoutubePlayerActivity" />
 
         <!-- The below code is for android OS version below N -->
         <receiver

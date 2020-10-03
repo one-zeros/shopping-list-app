@@ -11,12 +11,14 @@ import `in`.onenzeros.shoppinglist.enum.UpdateType
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
 import `in`.onenzeros.shoppinglist.utils.BaseActivity
+import `in`.onenzeros.shoppinglist.utils.DeveloperKey
 import `in`.onenzeros.shoppinglist.utils.PreferenceUtil
 import `in`.onenzeros.shoppinglist.utils.Utility
 import `in`.onenzeros.shoppinglist.viewModel.MainActivityViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore.Video.Thumbnails.VIDEO_ID
 import android.util.Log
 import android.view.KeyEvent
 import android.view.KeyEvent.ACTION_DOWN
@@ -29,6 +31,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.youtube.player.YouTubeStandalonePlayer
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_add_icon.view.*
@@ -154,7 +157,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private fun setSuggestionAdapter() {
         val adapter = ArrayAdapter(this,
-            android.R.layout.simple_list_item_1, suggestionsList)
+            R.layout.adapter_suggestion_list_item, suggestionsList)
         et_enter_item.setAdapter(adapter)
         et_enter_item.setOnItemClickListener { _, _, _, _ ->
             addToShoppingList()
@@ -350,13 +353,17 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
-            R.id.menu_help -> openWebView(WebviewActivity.HELP_LINK)
+            R.id.menu_help -> openYoutube(WebviewActivity.HELP_LINK)
             R.id.menu_story -> openWebView(WebviewActivity.SYORY_LINK)
             R.id.menu_about -> openWebView(WebviewActivity.ABOUT_LINK)
             R.id.menu_contact -> sendEmail()
             R.id.menu_share -> shareList()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun openYoutube(link: String) {
+        startActivity(Intent(this, YoutubePlayerActivity::class.java))
     }
 
     private fun openWebView(link: String) {
