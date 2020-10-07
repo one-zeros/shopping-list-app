@@ -8,27 +8,32 @@ import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import kotlinx.android.synthetic.main.activity_youtube.*
 
-
 internal class YoutubePlayerActivity : YouTubeBaseActivity() {
-    var onInitializedListener: YouTubePlayer.OnInitializedListener? = null
+
+    private var onInitializedListener: YouTubePlayer.OnInitializedListener? = null
+    val videoId = "8lfitdnMaEs"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_youtube)
         onInitializedListener = object : YouTubePlayer.OnInitializedListener {
+
             override fun onInitializationSuccess(
                 provider: YouTubePlayer.Provider,
                 youTubePlayer: YouTubePlayer,
                 wasRestored: Boolean) {
                 if (!wasRestored) {
-                    youTubePlayer.cueVideo("8lfitdnMaEs");
-                    youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+                    youTubePlayer.cueVideo( videoId)
+                    youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT)
                     youTubePlayer.play()
                 }
+                youTubePlayer.loadVideo(videoId) // where video.id is a String of a Youtube video ID
+
             }
+
             override fun onInitializationFailure(
                 provider: YouTubePlayer.Provider,
-                youTubeInitializationResult: YouTubeInitializationResult
-            ) {
+                youTubeInitializationResult: YouTubeInitializationResult) {
             }
         }
         toolbar?.setNavigationOnClickListener {  finish() }

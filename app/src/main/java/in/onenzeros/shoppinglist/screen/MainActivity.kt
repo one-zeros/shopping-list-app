@@ -11,14 +11,12 @@ import `in`.onenzeros.shoppinglist.enum.UpdateType
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import `in`.onenzeros.shoppinglist.rest.request.UpdateListRequest
 import `in`.onenzeros.shoppinglist.utils.BaseActivity
-import `in`.onenzeros.shoppinglist.utils.DeveloperKey
 import `in`.onenzeros.shoppinglist.utils.PreferenceUtil
 import `in`.onenzeros.shoppinglist.utils.Utility
 import `in`.onenzeros.shoppinglist.viewModel.MainActivityViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore.Video.Thumbnails.VIDEO_ID
 import android.util.Log
 import android.view.KeyEvent
 import android.view.KeyEvent.ACTION_DOWN
@@ -31,7 +29,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.youtube.player.YouTubeStandalonePlayer
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_add_icon.view.*
@@ -232,11 +229,11 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         val itemName  = et_enter_item.text.toString()
         if (itemName.isNotEmpty()) {
             if(itemName.trim().isNotEmpty()) {
-                groupItemByCategory(itemName)?.let {
+                groupItemByCategory(itemName.trim())?.let {
                     shoppingAdapter.addShoppingListItem(it)
                     et_enter_item.setText("")
                     updateBadgeCount()
-                    viewModel.updateListAPICall(UpdateListRequest(id, UpdateType.ADD.toString(), itemName),false)
+                    viewModel.updateListAPICall(UpdateListRequest(id, UpdateType.ADD.toString(), itemName.trim()),false)
                 }
             } else{
                 Toast.makeText(this, getString(R.string.valid_shopping_item),Toast.LENGTH_LONG).show()
@@ -353,7 +350,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
-            R.id.menu_help -> openYoutube(WebviewActivity.HELP_LINK)
+            R.id.menu_help -> openYoutube()
             R.id.menu_story -> openWebView(WebviewActivity.SYORY_LINK)
             R.id.menu_about -> openWebView(WebviewActivity.ABOUT_LINK)
             R.id.menu_contact -> sendEmail()
@@ -362,7 +359,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun openYoutube(link: String) {
+    private fun openYoutube() {
         startActivity(Intent(this, YoutubePlayerActivity::class.java))
     }
 
@@ -383,7 +380,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         try {
             val shareIntent = Intent(Intent.ACTION_SEND)
             shareIntent.type = "text/plain"
-            var shareMessage = getString(R.string.share_msg,id)
+            val shareMessage = getString(R.string.share_msg,id)
             shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
             startActivity(Intent.createChooser(shareIntent, "choose one"))
         } catch (e: Exception) {

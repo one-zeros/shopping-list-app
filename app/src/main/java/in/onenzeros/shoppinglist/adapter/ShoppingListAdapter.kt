@@ -114,6 +114,7 @@ class ShoppingListAdapter(private var mShoppingList: ArrayList<ShoppingModel>, p
 
     fun addShoppingListItem(responses: ShoppingModel) {
         mShoppingList.add(responses)
+        mShoppingList = mShoppingList.distinct() as ArrayList<ShoppingModel>
         mShoppingList = getGroupedList(mShoppingList)
         notifyDataSetChanged()
     }

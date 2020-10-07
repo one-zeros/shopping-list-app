@@ -15,8 +15,8 @@
         app:layout_constraintTop_toTopOf="@id/iv_add_to_cart"
         app:layout_constraintBottom_toBottomOf="@id/iv_add_to_cart"
         android:textSize="18sp"
-        android:fontFamily="sans-serif"
         android:text="Milk"
+        android:fontFamily="@font/arial"
         android:textColor="@color/textColor"
         android:textStyle="bold"
         />
