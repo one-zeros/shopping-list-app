@@ -146,6 +146,7 @@ class MainActivityViewModel : AndroidViewModel {
                     }
                 }
             }
+            //TODO do handle error
             override fun onFailure(call: Call<SuggestionListResponse>, t: Throwable) {
               }
         })
@@ -163,11 +164,13 @@ class MainActivityViewModel : AndroidViewModel {
                     }
                 }
             }
+            //TODO do handle error
             override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
             }
         })
     }
 
+    // TODO this methods complexity is too high. Can you split it to smaller ones?
     fun updateListAPICall(updateListRequest: UpdateListRequest, isPendingList : Boolean) {
         if(netConnected) {
             val call = apiService.updateExistingList(updateListRequest)

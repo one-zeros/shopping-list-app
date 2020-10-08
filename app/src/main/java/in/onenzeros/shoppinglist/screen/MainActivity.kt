@@ -36,7 +36,6 @@ import kotlinx.android.synthetic.main.layout_cart_icon.*
 import java.util.*
 
 
-//TODO Alka, please avoid _ in package name
 class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private lateinit var shoppingAdapter: ShoppingListAdapter
@@ -130,6 +129,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             })
 
         viewModel.toastMsg.observe(this,
+            //TODO both if and else does the same thing
             androidx.lifecycle.Observer {
                 if(it == "something_went_wrong")
                     Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong), Toast.LENGTH_LONG).show()

@@ -22,6 +22,7 @@ public class PreferenceUtil(context: Context?)  {
         this.mPreferences?.edit()?.putString(LIST_ID, id)?.apply()
     }
 
+    // TODO is this dead code?
     fun getList() :String?{
         return this.mPreferences?.getString(LIST, "").toString()
     }
