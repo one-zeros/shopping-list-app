@@ -14,6 +14,7 @@ import `in`.onenzeros.shoppinglist.utils.BaseActivity
 import `in`.onenzeros.shoppinglist.utils.PreferenceUtil
 import `in`.onenzeros.shoppinglist.utils.Utility
 import `in`.onenzeros.shoppinglist.viewModel.MainActivityViewModel
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -25,6 +26,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -171,7 +173,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private fun initUI() {
         shoppingAdapter =
-            ShoppingListAdapter(mShoppingList, mCartList)
+            ShoppingListAdapter(this, mShoppingList, mCartList)
         shoppingAdapter.setOnItemClickListener(object :
             ShoppingItemClickListener {
             override fun onAddToCart(pos: Int, shoppingModel: ShoppingModel) {
@@ -202,8 +204,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         }
 
         binding?.ivDone?.setOnClickListener {
-            clearListData()
-            viewModel.loadNewList()
+            clearListAlert()
         }
 
         binding?.etEnterItem?.setOnKeyListener(object : View.OnKeyListener {
@@ -270,7 +271,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private fun updateBadgeCount() {
         layout_add_icon.tv_count.text = shoppingAdapter.getShoppingListItemCount().toString()
         tv_cart_count?.text = shoppingAdapter.getCartListItemCount().toString()
-    }
+ }
 
     private fun parseListData(defaultListResponse: DefaultListResponse) {
         val pendingList = defaultListResponse.pending.distinct()
@@ -296,8 +297,6 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         tv_sync_time.visibility = View.VISIBLE
         tv_sync_time.text = updateTime
         saveListToPreference(id, mShoppingList, mCartList,tv_sync_time.text.toString())
-
-        tv_list_id.text = "list id: ${this.id}"
     }
 
     private fun saveListToPreference(id : String, mShoppingList: ArrayList<ShoppingModel>, mCartList: ArrayList<ShoppingModel>, date: String) {
@@ -385,6 +384,22 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             startActivity(Intent.createChooser(shareIntent, "choose one"))
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun clearListAlert(){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Do you want to create new list?")
+            setPositiveButton("Yes") { _: DialogInterface, _: Int ->
+                clearListData()
+                viewModel.loadNewList()
+            }
+            setNegativeButton("No") { dialog: DialogInterface, _: Int ->
+                dialog.dismiss()
+            }
+            show()
         }
     }
 }

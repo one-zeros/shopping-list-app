@@ -3,9 +3,12 @@ package `in`.onenzeros.shoppinglist.adapter
 import `in`.onenzeros.shoppinglist.R
 import `in`.onenzeros.shoppinglist.listener.ShoppingItemClickListener
 import `in`.onenzeros.shoppinglist.data.model.ShoppingModel
+import android.content.Context
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import kotlinx.android.synthetic.main.adapter_cart_list_item.view.*
@@ -13,13 +16,14 @@ import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.*
 import kotlinx.android.synthetic.main.adapter_shopping_list_item.view.tv_name
 import kotlinx.android.synthetic.main.layout_cart_icon.view.*
 
-class ShoppingListAdapter(private var mShoppingList: ArrayList<ShoppingModel>, private var mCartList: ArrayList<ShoppingModel>) :
+class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayList<ShoppingModel>, private var mCartList: ArrayList<ShoppingModel>) :
     Adapter<ViewHolder>() {
 
     private val VIEW_TYPE_SHOPPING = 0
     private val VIEW_TYPE_CART = 1
     private val VIEW_TYPE_HEADER_CART = 2
     private var shoppingItemClickListener : ShoppingItemClickListener? = null
+    val mContext = mcontext
 
     override fun onCreateViewHolder(parent: ViewGroup,
                                     viewType: Int): ViewHolder {
@@ -60,10 +64,16 @@ class ShoppingListAdapter(private var mShoppingList: ArrayList<ShoppingModel>, p
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (holder) {
             is ShoppingViewHolder -> {
                 val item = mShoppingList[position]
+                if(position == mShoppingList.size-1)
+                    holder.itemView.cv_root.elevation = mContext.resources.getDimension(R.dimen._8dp)
+                else
+                    holder.itemView.cv_root.elevation =mContext.resources.getDimension(R.dimen._0dp)
+
                 holder.bind(item.name)
                 holder.itemView.iv_add_to_cart.setOnClickListener {
                     addCartListItem(position,item)
