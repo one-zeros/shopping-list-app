@@ -44,6 +44,7 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
                     view
                 )
             }
+            // TODO if and else are same
             VIEW_TYPE_HEADER_CART -> {
                 val view =
                     LayoutInflater.from(parent.context)
@@ -135,6 +136,7 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
         notifyItemRangeChanged(0, position)
     }
 
+    // TODO position is unused
     private fun addCartListItem(position: Int, responses: ShoppingModel) {
         mShoppingList.remove(responses)
         mCartList.add(responses)
@@ -149,6 +151,7 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
         return ArrayList(mList.sortedWith(comparator).toList())
     }
 
+    //TODO Position is unused
     private fun undoCartListItem(position: Int, responses: ShoppingModel) {
         mCartList.remove(responses)
         mShoppingList.add(responses)
