@@ -44,7 +44,8 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
                     view
                 )
             }
-            // TODO if and else are same
+
+            // TODO if and else are same --  i have to write default case that's why it's same
             VIEW_TYPE_HEADER_CART -> {
                 val view =
                     LayoutInflater.from(parent.context)
@@ -77,7 +78,7 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
 
                 holder.bind(item.name)
                 holder.itemView.iv_add_to_cart.setOnClickListener {
-                    addCartListItem(position,item)
+                    addCartListItem(item)
                     shoppingItemClickListener?.onAddToCart(position, item)
                 }
                 holder.itemView.iv_delete.setOnClickListener {
@@ -90,7 +91,7 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
                 val name = mCartList[pos]
                 holder.bind(mCartList[pos].name)
                 holder.itemView.iv_undo.setOnClickListener {
-                    undoCartListItem(pos,name)
+                    undoCartListItem(name)
                     shoppingItemClickListener?.undoToShoppingList(position, name)
                 }
             }
@@ -136,8 +137,7 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
         notifyItemRangeChanged(0, position)
     }
 
-    // TODO position is unused
-    private fun addCartListItem(position: Int, responses: ShoppingModel) {
+    private fun addCartListItem(responses: ShoppingModel) {
         mShoppingList.remove(responses)
         mCartList.add(responses)
         mCartList = getGroupedList(mCartList)
@@ -151,8 +151,7 @@ class ShoppingListAdapter(mcontext: Context, private var mShoppingList: ArrayLis
         return ArrayList(mList.sortedWith(comparator).toList())
     }
 
-    //TODO Position is unused
-    private fun undoCartListItem(position: Int, responses: ShoppingModel) {
+    private fun undoCartListItem(responses: ShoppingModel) {
         mCartList.remove(responses)
         mShoppingList.add(responses)
         mShoppingList = getGroupedList(mShoppingList)

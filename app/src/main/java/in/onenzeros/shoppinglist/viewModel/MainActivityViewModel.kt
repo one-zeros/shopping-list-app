@@ -148,7 +148,8 @@ class MainActivityViewModel : AndroidViewModel {
             }
             //TODO do handle error
             override fun onFailure(call: Call<SuggestionListResponse>, t: Throwable) {
-              }
+                _toastMsg.postValue("something_went_wrong")
+            }
         })
     }
 
@@ -166,6 +167,7 @@ class MainActivityViewModel : AndroidViewModel {
             }
             //TODO do handle error
             override fun onFailure(call: Call<DefaultListResponse>, t: Throwable) {
+                _toastMsg.postValue("something_went_wrong")
             }
         })
     }
@@ -182,16 +184,7 @@ class MainActivityViewModel : AndroidViewModel {
                 ) {
                     if (response.code() == 200) {
                         response.body()?.let {
-                            if(isPendingList) {
-                                _existingList.postValue(it)
-                                if(mSyncUpdateList.size>0)
-                                    mSyncUpdateList.removeAt(0)
-                                val updateListString = Gson().toJson(mSyncUpdateList)
-                                mPreferenceUtil?.setPendingUpdateList(updateListString)
-                                if(mSyncUpdateList.size>0)
-                                    updateListAPICall(mSyncUpdateList[0],true)
-
-                            }
+                            manageSyncList(isPendingList,it)
                         }
                     }
                 }
@@ -203,6 +196,21 @@ class MainActivityViewModel : AndroidViewModel {
             })
         } else{
             mUpdateList.add(updateListRequest)
+        }
+    }
+
+    private fun manageSyncList(
+        pendingList: Boolean,
+        defaultListResponse: DefaultListResponse)
+    {
+        if(pendingList) {
+            _existingList.postValue(defaultListResponse)
+            if(mSyncUpdateList.size>0)
+                mSyncUpdateList.removeAt(0)
+            val updateListString = Gson().toJson(mSyncUpdateList)
+            mPreferenceUtil?.setPendingUpdateList(updateListString)
+            if(mSyncUpdateList.size>0)
+                updateListAPICall(mSyncUpdateList[0],true)
         }
     }
 

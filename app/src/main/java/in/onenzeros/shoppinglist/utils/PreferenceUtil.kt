@@ -23,13 +23,6 @@ public class PreferenceUtil(context: Context?)  {
     }
 
     // TODO is this dead code?
-    fun getList() :String?{
-        return this.mPreferences?.getString(LIST, "").toString()
-    }
-
-    fun setList( list : String) {
-        this.mPreferences?.edit()?.putString(LIST, list)?.apply()
-    }
 
     fun getPendingList() :String?{
         return this.mPreferences?.getString(PENDING_LIST, "").toString()

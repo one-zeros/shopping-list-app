@@ -136,7 +136,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
                 if(it == "something_went_wrong")
                     Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong), Toast.LENGTH_LONG).show()
                 else
-                    Toast.makeText(this@MainActivity, getString(R.string.something_went_wrong), Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, it, Toast.LENGTH_LONG).show()
             })
     }
 
