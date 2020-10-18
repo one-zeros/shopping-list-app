@@ -41,10 +41,12 @@ import java.util.*
 class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
 
     private lateinit var shoppingAdapter: ShoppingListAdapter
+    private lateinit var suggestionAdapter: ArrayAdapter<String>
     private lateinit var shoppingResponse: SuggestionListResponse
     private var mShoppingList: ArrayList<ShoppingModel> = arrayListOf()
     private var mCartList: ArrayList<ShoppingModel> = arrayListOf()
     private var mUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
+    private var mSuggestionList: ArrayList<String> = arrayListOf()
     private var mPreferenceUtil: PreferenceUtil? = null
     private  var id: String = ""
     private  var updateTime: String = ""
@@ -56,6 +58,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private val everyTenSeconds = 10000L
     private var netConnected = false
     private val suggestionsList : MutableList<String> = mutableListOf()
+    private var mClientId: String = ""
 
     var binding: ActivityMainBinding? = null
     lateinit var viewModel: MainActivityViewModel
@@ -69,13 +72,15 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         binding?.viewModel = viewModel
         binding?.lifecycleOwner = this
         binding?.executePendingBindings()
+        mClientId = getClientId()
+        viewModel.setClientId(mClientId)
         mPreferenceUtil = ShoppingListApp.mPreferenceUtil
         initUI()
         syncOfflineData()
         setConnectionChangeListener(this)
         initObservers()
         intent.data?.let {
-            handleDeeplinkData(it)
+            openFromShareAlert(it)
         } ?: kotlin.run {
             viewModel.initializeData()
         }
@@ -155,18 +160,24 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     }
 
     private fun setSuggestionAdapter() {
-        val adapter = ArrayAdapter(this,
+        suggestionAdapter = ArrayAdapter(this,
             R.layout.adapter_suggestion_list_item, suggestionsList)
-        et_enter_item.setAdapter(adapter)
+        et_enter_item.setAdapter(suggestionAdapter)
         et_enter_item.setOnItemClickListener { _, _, _, _ ->
+            val name = et_enter_item.text.toString()
+            suggestionsList.remove(name)
+            suggestionAdapter.remove(name)
             addToShoppingList()
         }
     }
 
     private fun setSuggestionList(shoppingResponse: SuggestionListResponse) {
+        mSuggestionList.clear()
         suggestionsList.clear()
         shoppingResponse.forEachIndexed { _, shoppingCategory ->
-            suggestionsList.addAll(shoppingCategory.items)
+            val list = shoppingCategory.items as ArrayList<String>
+            mSuggestionList.addAll(list)
+            suggestionsList.addAll(list)
         }
         setSuggestionAdapter()
     }
@@ -178,15 +189,16 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             ShoppingItemClickListener {
             override fun onAddToCart(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.PICKED.toString(),shoppingModel.name),false)
+                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.PICKED.toString(),mClientId,shoppingModel.name),false)
             }
             override fun onDelete(pos: Int, shoppingModel: ShoppingModel) {
+                addItemBackToSuggestion(shoppingModel.name)
                 updateBadgeCount()
-                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.REMOVE.toString(),shoppingModel.name),false)
+                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.REMOVE.toString(),mClientId,shoppingModel.name),false)
             }
             override fun undoToShoppingList(pos: Int, shoppingModel: ShoppingModel) {
                 updateBadgeCount()
-                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.DROPPED.toString(),shoppingModel.name),false)
+                viewModel.updateListAPICall(UpdateListRequest(id,UpdateType.DROPPED.toString(),mClientId,shoppingModel.name),false)
             }
         })
 
@@ -220,6 +232,13 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         })
     }
 
+    private fun addItemBackToSuggestion(name: String) {
+        if(mSuggestionList.contains(name) && !suggestionsList.contains(name)) {
+            val pos = mSuggestionList.indexOf(name)
+            suggestionAdapter.insert(name,pos)
+        }
+    }
+
     private fun clearListData() {
         mShoppingList.clear()
         mCartList.clear()
@@ -234,7 +253,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
                     shoppingAdapter.addShoppingListItem(it)
                     et_enter_item.setText("")
                     updateBadgeCount()
-                    viewModel.updateListAPICall(UpdateListRequest(id, UpdateType.ADD.toString(), itemName.trim()),false)
+                    viewModel.updateListAPICall(UpdateListRequest(id, UpdateType.ADD.toString(),mClientId, itemName.trim()),false)
                 }
             } else{
                 Toast.makeText(this, getString(R.string.valid_shopping_item),Toast.LENGTH_LONG).show()
@@ -294,7 +313,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     private fun setListData() {
         shoppingAdapter.changeData(mShoppingList,mCartList)
         updateBadgeCount()
-        tv_sync_time.visibility = View.VISIBLE
+        tv_sync_time.visibility = View.GONE
         tv_sync_time.text = updateTime
         saveListToPreference(id, mShoppingList, mCartList,tv_sync_time.text.toString())
     }
@@ -402,4 +421,20 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
             show()
         }
     }
+
+    private fun openFromShareAlert(uri: Uri) {
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Do you want to continue?")
+            setPositiveButton("Yes") { _: DialogInterface, _: Int ->
+                handleDeeplinkData(uri)
+            }
+            setNegativeButton("No") { dialog: DialogInterface, _: Int ->
+                dialog.dismiss()
+            }
+            show()
+        }
+    }
+
 }

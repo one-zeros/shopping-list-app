@@ -4,21 +4,29 @@ import `in`.onenzeros.shoppinglist.R
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import java.util.*
 
 open class BaseActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverListener {
     private var mSnackBar: Snackbar? = null
+    private var clientId: String = ""
     private var mConnectionChangeListener: ConnectionChangeListener? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerReceiver(ConnectivityReceiver(),
             IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         )
+        clientId = UUID.randomUUID().toString()
     }
 
     fun setConnectionChangeListener(mConnectionChangeListener: ConnectionChangeListener) {
         this.mConnectionChangeListener = mConnectionChangeListener
+    }
+
+    fun getClientId() : String {
+       return clientId
     }
 
     private fun showMessage(isConnected: Boolean) {

@@ -34,10 +34,10 @@ interface ApiService {
     }
 
     @GET(".")
-    fun getDefaultList(): Call<DefaultListResponse>
+    fun getDefaultList(@Query("clientId") clientId: String): Call<DefaultListResponse>
 
     @GET("/{id}")
-    fun getExistingList(@Path("id") id: String): Call<DefaultListResponse>
+    fun getExistingList(@Path("id") id: String, @Query("clientId") clientId: String): Call<DefaultListResponse>
 
     @PUT(".")
     fun updateExistingList(@Body request: UpdateListRequest): Call<DefaultListResponse>

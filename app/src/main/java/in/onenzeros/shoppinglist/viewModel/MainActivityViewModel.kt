@@ -64,6 +64,7 @@ class MainActivityViewModel : AndroidViewModel {
     private var mSyncUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
     private var netConnected = false
     private var mUpdateList: ArrayList<UpdateListRequest> = arrayListOf()
+    private var clientId: String = ""
 
     private val apiService by lazy {
         ApiService.create()
@@ -77,6 +78,10 @@ class MainActivityViewModel : AndroidViewModel {
     fun initializeDataFromDeeplink(id : String) {
         clearAllPreviousData(id)
         lodExistingList(id)
+    }
+
+    fun setClientId(id : String) {
+        this.clientId = id
     }
 
     fun initializeData() {
@@ -115,7 +120,7 @@ class MainActivityViewModel : AndroidViewModel {
 
     fun loadNewList() = viewModelScope.launch(Dispatchers.IO) {
         val call
-                = apiService.getDefaultList()
+                = apiService.getDefaultList(clientId)
 
         call.enqueue(object : Callback<DefaultListResponse> {
             override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
@@ -155,7 +160,7 @@ class MainActivityViewModel : AndroidViewModel {
 
     fun lodExistingList(id: String) {
         val call
-                = apiService.getExistingList(id)
+                = apiService.getExistingList(id,clientId)
 
         call.enqueue(object : Callback<DefaultListResponse> {
             override fun onResponse(call: Call<DefaultListResponse>, response: Response<DefaultListResponse>) {
