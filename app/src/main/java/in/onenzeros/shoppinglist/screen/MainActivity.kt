@@ -426,7 +426,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         val builder = AlertDialog.Builder(this)
         with(builder)
         {
-            setTitle("Do you want to continue?")
+            setTitle("You already have a shopping list. Clicking ok will clear your existing list. Do you want to continue?")
             setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                 handleDeeplinkData(uri)
             }

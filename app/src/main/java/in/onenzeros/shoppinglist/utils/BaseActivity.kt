@@ -41,7 +41,7 @@ open class BaseActivity : AppCompatActivity(), ConnectivityReceiver.Connectivity
             val messageToUser = "Check your internet connection. Please try again later" //TODO
 
             mSnackBar = Snackbar.make(findViewById(R.id.rootLayout), messageToUser, Snackbar.LENGTH_LONG) //Assume "rootLayout" as the root layout of every activity.
-            mSnackBar?.duration = Snackbar.LENGTH_INDEFINITE
+            mSnackBar?.duration = Snackbar.LENGTH_LONG
             mSnackBar?.show()
         } else {
             mSnackBar?.dismiss()
