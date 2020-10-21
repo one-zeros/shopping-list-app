@@ -426,7 +426,7 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
         val builder = AlertDialog.Builder(this)
         with(builder)
         {
-            setTitle("Do you want replace your existing shopping list with this one?")
+            setTitle("Replace your existing list with this one?")
             setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                 handleDeeplinkData(uri)
             }
