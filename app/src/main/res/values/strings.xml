@@ -13,6 +13,7 @@
     <string name="story">Story</string>
     <string name="about">About</string>
     <string name="contact">Contact us</string>
+    <string name="privacy_policy">Privacy Policy</string>
     <string name="setting">Setting</string>
     <string name="share_msg">Here is our shopping list. Manage items or use it for shopping. https://quickshoppinglist.com/?id=%s</string>
 </resources>

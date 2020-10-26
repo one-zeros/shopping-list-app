@@ -369,8 +369,9 @@ class MainActivity : BaseActivity(), BaseActivity.ConnectionChangeListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.menu_help -> openYoutube()
-            R.id.menu_story -> openWebView(WebviewActivity.SYORY_LINK)
+            R.id.menu_story -> openWebView(WebviewActivity.STORY_LINK)
             R.id.menu_about -> openWebView(WebviewActivity.ABOUT_LINK)
+            R.id.menu_privacy_policy-> openWebView(WebviewActivity.PRIVACY_POLICY_LINK)
             R.id.menu_contact -> sendEmail()
             R.id.menu_share -> shareList()
         }

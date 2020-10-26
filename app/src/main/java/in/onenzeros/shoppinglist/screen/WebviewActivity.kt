@@ -18,10 +18,11 @@ import androidx.lifecycle.ViewModelProvider
 class WebviewActivity : BaseActivity() {
 
     companion object{
-        val SYORY_LINK = "https://quickshoppinglist.com/story.html?source=app"
-        val ABOUT_LINK = "https://quickshoppinglist.com/about.html"
-        val HELP_LINK = "https://www.youtube.com/watch?v=8lfitdnMaEs&feature=youtu.be"
-        val ARG_URL = "arg_url"
+        const val STORY_LINK = "https://quickshoppinglist.com/story.html?source=app"
+        const val ABOUT_LINK = "https://quickshoppinglist.com/about.html"
+        const val PRIVACY_POLICY_LINK = "https://quickshoppinglist.com/privacypolicy.html"
+        const val HELP_LINK = "https://www.youtube.com/watch?v=8lfitdnMaEs&feature=youtu.be"
+        const val ARG_URL = "arg_url"
     }
 
     private var binding: ActivityWebviewBinding? = null
